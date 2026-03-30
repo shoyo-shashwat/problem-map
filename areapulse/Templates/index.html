@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AreaPulse</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f6f9; color: #333; }
+
+    header {
+      background: #1a1a2e; color: white;
+      padding: 18px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 24px; }
+    header span { font-size: 13px; opacity: 0.7; }
+
+    .container { max-width: 1000px; margin: 32px auto; padding: 0 20px; }
+
+    /* Report Form */
+    .card {
+      background: white; border-radius: 12px;
+      padding: 24px; margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .card h2 { font-size: 18px; margin-bottom: 16px; color: #1a1a2e; }
+    .form-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    select, textarea, input {
+      flex: 1; padding: 10px 14px; border: 1px solid #ddd;
+      border-radius: 8px; font-size: 14px; min-width: 160px;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    .btn-submit {
+      background: #1a1a2e; color: white;
+      border: none; padding: 11px 28px;
+      border-radius: 8px; cursor: pointer; font-size: 14px;
+    }
+    .btn-submit:hover { background: #2d2d5e; }
+    #tag-preview {
+      display: inline-block; margin-left: 12px;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 13px; font-weight: bold;
+      background: #e8f4fd; color: #1a6eb5;
+    }
+
+    /* Filters */
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-btn {
+      padding: 8px 20px; border-radius: 20px;
+      border: 1.5px solid #ccc; background: white;
+      cursor: pointer; font-size: 13px; font-weight: 500;
+      transition: all 0.2s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: #1a1a2e; color: white; border-color: #1a1a2e;
+    }
+
+    /* Summary Cards */
+    .summary-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px; margin-bottom: 24px;
+    }
+    .area-card {
+      background: white; border-radius: 10px;
+      padding: 16px; text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      border-top: 4px solid #ccc;
+    }
+    .area-card.high  { border-top-color: #e74c3c; }
+    .area-card.medium { border-top-color: #f39c12; }
+    .area-card.low   { border-top-color: #27ae60; }
+    .area-card h3 { font-size: 15px; margin-bottom: 6px; }
+    .area-card .count { font-size: 26px; font-weight: bold; }
+    .heat-badge {
+      display: inline-block; margin-top: 6px;
+      padding: 3px 10px; border-radius: 12px;
+      font-size: 12px; font-weight: bold;
+    }
+    .heat-badge.high   { background: #fdecea; color: #c0392b; }
+    .heat-badge.medium { background: #fef6e7; color: #d68910; }
+    .heat-badge.low    { background: #eafaf1; color: #1e8449; }
+
+    /* Issue List */
+    .issue-item {
+      background: white; border-radius: 10px;
+      padding: 16px 20px; margin-bottom: 12px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.06);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .issue-left { flex: 1; }
+    .issue-left h4 { font-size: 15px; margin-bottom: 4px; }
+    .issue-left p  { font-size: 13px; color: #777; }
+    .issue-meta { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
+    .tag-pill {
+      padding: 3px 10px; border-radius: 12px;
+      font-size: 12px; font-weight: bold;
+    }
+    .tag-Water       { background:#e8f4fd; color:#1a6eb5; }
+    .tag-LPG         { background:#fef6e7; color:#d68910; }
+    .tag-Garbage     { background:#eafaf1; color:#1e8449; }
+    .tag-Electricity { background:#fdecea; color:#c0392b; }
+    .tag-Other       { background:#f0f0f0; color:#555; }
+    .priority-score {
+      font-size: 12px; color: #888;
+      background: #f4f4f4; padding: 3px 8px; border-radius: 8px;
+    }
+    .upvote-btn {
+      background: none; border: 1.5px solid #ddd;
+      border-radius: 8px; padding: 8px 14px;
+      cursor: pointer; font-size: 13px; color: #555;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .upvote-btn:hover { border-color: #1a1a2e; color: #1a1a2e; }
+
+    .empty-state {
+      text-align: center; padding: 40px; color: #aaa; font-size: 15px;
+    }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #1a1a2e; color: white;
+      padding: 12px 20px; border-radius: 8px;
+      font-size: 14px; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+  #map { height: 420px; border-radius: 12px; width: 100%; margin-bottom: 24px; }
+.heat-high   { background: #e74c3c; }
+.heat-medium { background: #f39c12; }
+.heat-low    { background: #27ae60; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>AreaPulse</h1>
+  <span>Real-time civic problem map</span>
+</header>
+
+<div class="container">
+
+  <!-- Report Form -->
+  <div class="card">
+    <h2>Report an issue</h2>
+    <div class="form-row">
+      <select id="area-select">
+        <option value="">Select area</option>
+        <option>Rohini</option>
+        <option>Dwarka</option>
+        <option>Janakpuri</option>
+        <option>Lajpat Nagar</option>
+        <option>Saket</option>
+        <option>Karol Bagh</option>
+        <option>Pitampura</option>
+        <option>Vasant Kunj</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <textarea id="desc-input"
+        placeholder="Describe the problem e.g. no water supply since morning, gas cylinder not available..."
+        oninput="previewTag()"></textarea>
+    </div>
+    <button class="btn-submit" onclick="submitReport()">Submit report</button>
+    <span id="tag-preview" style="display:none"></span>
+  </div>
+
+<!-- Map -->
+  <div class="card">
+    <h2>Live problem map</h2>
+    <div id="map"></div>
+  </div>
+
+  <!-- Area Summary -->
+  <div class="card">
+    <h2>Area summary</h2>
+    <div class="summary-grid" id="summary-grid">
+      <div class="empty-state">No issues reported yet</div>
+    </div>
+  </div>
+
+  <!-- Filters + Issues -->
+  <div class="card">
+    <h2>Issues</h2>
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterIssues('All', this)">All</button>
+      <button class="filter-btn" onclick="filterIssues('Water', this)">Water</button>
+      <button class="filter-btn" onclick="filterIssues('LPG', this)">LPG</button>
+      <button class="filter-btn" onclick="filterIssues('Garbage', this)">Garbage</button>
+      <button class="filter-btn" onclick="filterIssues('Electricity', this)">Electricity</button>
+      <button class="filter-btn" onclick="filterIssues('Other', this)">Other</button>
+    </div>
+    <div id="issue-list">
+      <div class="empty-state">No issues yet — submit one above</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  const KEYWORDS = {
+    Water:       ['no water','pipe burst','leak','water supply','water issue','pani nahi'],
+    LPG:         ['gas cylinder','no gas','lpg','cylinder','gas nahi'],
+    Garbage:     ['waste','garbage','trash','bin','kachra','smell'],
+    Electricity: ['no power','blackout','electricity','light gone','bijli','current nahi'],
+  };
+
+  function previewTag() {
+    const desc = document.getElementById('desc-input').value.toLowerCase();
+    let tag = 'Other';
+    for (const [t, words] of Object.entries(KEYWORDS)) {
+      if (words.some(w => desc.includes(w))) { tag = t; break; }
+    }
+    const el = document.getElementById('tag-preview');
+    el.textContent = 'Auto-tagged: ' + tag;
+    el.style.display = 'inline-block';
+  }
+
+  async function submitReport() {
+    const area = document.getElementById('area-select').value;
+    const desc = document.getElementById('desc-input').value.trim();
+    if (!area) { showToast('Please select an area'); return; }
+    if (!desc)  { showToast('Please describe the problem'); return; }
+    const res = await fetch('/report', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ area, description: desc })
+    });
+    const data = await res.json();
+    showToast('Reported! Tagged as: ' + data.tag);
+    document.getElementById('desc-input').value = '';
+    document.getElementById('area-select').value = '';
+    document.getElementById('tag-preview').style.display = 'none';
+      await Promise.all([loadSummary(), loadIssues('All')]);
+      await loadMap();
+}
+let mapInstance = null;
+
+async function loadMap() {
+  const res  = await fetch('/map-data');
+  const data = await res.json();
+
+  if (!mapInstance) {
+    mapInstance = L.map('map').setView([28.6139, 77.2090], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'OpenStreetMap contributors'
+    }).addTo(mapInstance);
+  }
+
+  mapInstance.eachLayer(layer => {
+    if (layer instanceof L.CircleMarker) mapInstance.removeLayer(layer);
+  });
+
+  const colors = { high: '#e74c3c', medium: '#f39c12', low: '#27ae60' };
+  const sizes  = { high: 40, medium: 28, low: 18 };
+
+  data.forEach(area => {
+    const color = colors[area.heat];
+    const size  = sizes[area.heat];
+    const circle = L.circleMarker([area.lat, area.lng], {
+      radius: size,
+      fillColor: color,
+      color: color,
+      weight: 1,
+      opacity: 0.9,
+      fillOpacity: 0.45
+    }).addTo(mapInstance);
+
+    circle.bindPopup(`
+      <strong>${area.area}</strong><br>
+      Issues: ${area.count}<br>
+      Heat: <span style="color:${color};font-weight:bold">
+        ${area.heat.toUpperCase()}
+      </span>
+    `);
+  });
+}
+  async function loadSummary() {
+    const res  = await fetch('/summary');
+    const data = await res.json();
+    const grid = document.getElementById('summary-grid');
+    if (!data.length) {
+      grid.innerHTML = '<div class="empty-state">No issues reported yet</div>'; return;
+    }
+    grid.innerHTML = data.map(a => `
+      <div class="area-card ${a.heat}">
+        <h3>${a.area}</h3>
+        <div class="count">${a.count}</div>
+        <div class="heat-badge ${a.heat}">${a.heat.toUpperCase()}</div>
+      </div>`).join('');
+  }
+
+  async function loadIssues(tag) {
+    const res  = await fetch('/issues?tag=' + tag);
+    const data = await res.json();
+    const list = document.getElementById('issue-list');
+    if (!data.length) {
+      list.innerHTML = '<div class="empty-state">No issues in this category</div>'; return;
+    }
+    list.innerHTML = data.map(i => `
+      <div class="issue-item" id="issue-${i.id}">
+        <div class="issue-left">
+          <h4>${i.area}</h4>
+          <p>${i.description}</p>
+          <div class="issue-meta">
+            <span class="tag-pill tag-${i.tag}">${i.tag}</span>
+            <span class="priority-score">Priority: ${i.priority}</span>
+          </div>
+        </div>
+        <button class="upvote-btn" onclick="upvote(${i.id})">
+          Upvote ${i.upvotes}
+        </button>
+      </div>`).join('');
+  }
+
+  function filterIssues(tag, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadIssues(tag);
+  }
+
+  async function upvote(id) {
+    await fetch('/upvote/' + id, { method: 'POST' });
+    const activeBtn = document.querySelector('.filter-btn.active');
+    const tag = activeBtn ? activeBtn.textContent : 'All';
+    loadIssues(tag);
+    loadSummary();
+    showToast('Upvoted!');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  loadSummary();
+  loadIssues('All');
+  loadMap();
+
+
+</script>
+</body>
+</html>
+```
+
+---
+

@@ -1,0 +1,4 @@
+areapulse.db
+__pycache__/
+*.pyc
+.env
