@@ -1,4 +1,9 @@
-areapulse.db
+.venv/
+venv/
 __pycache__/
 *.pyc
-.env
+areapulse.db
+*.exe
+*.bat
+*.ps1
+Activate.ps1
