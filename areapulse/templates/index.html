@@ -1,173 +1,410 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AreaPulse</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AreaPulse — Civic Issue Tracker · Delhi</title>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=cabinet-grotesk@300,400,500,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
-<style>
-body { font-family: Arial; background:#f4f6f9; margin:0; }
-header { background:#1a1a2e; color:white; padding:16px; text-align:center; }
-
-.container { max-width:1000px; margin:20px auto; }
-
-.card {
-  background:white;
-  padding:20px;
-  border-radius:12px;
-  margin-bottom:20px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-}
-
-input, select, textarea {
-  width:100%; padding:10px;
-  margin-bottom:10px;
-  border-radius:8px;
-  border:1px solid #ddd;
-}
-
-button {
-  padding:8px 14px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-}
-
-.btn { background:#1a1a2e; color:white; }
-
-.issue {
-  display:flex;
-  justify-content:space-between;
-  padding:10px;
-  border-bottom:1px solid #eee;
-}
-
-#map { height:350px; }
-
-.lb { display:flex; justify-content:space-between; }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
 
-<header><h2>AreaPulse 🚀</h2></header>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="brand-dot"></div>
+    <span class="brand-name">AreaPulse</span>
+    <span class="brand-tag">Delhi</span>
+  </div>
+  <div class="nav-center">
+    <a href="/" class="nav-link active">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      Live Map
+    </a>
+    <a href="/issues-page" class="nav-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Issues
+    </a>
+    <a href="/leaderboard-page" class="nav-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Leaderboard
+    </a>
+  </div>
+  <div class="nav-right">
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      Live
+    </div>
+    <div class="user-pill" id="nav-user-display">Guest</div>
+  </div>
+</nav>
 
-<div class="container">
-
-<div class="card">
-<h3>Report Issue</h3>
-<input id="user" placeholder="Your name">
-<select id="area">
-<option value="">Select Area</option>
-<option>Rohini</option>
-<option>Dwarka</option>
-<option>Janakpuri</option>
-<option>Lajpat Nagar</option>
-<option>Saket</option>
-<option>Karol Bagh</option>
-<option>Pitampura</option>
-<option>Vasant Kunj</option>
-</select>
-<textarea id="desc" placeholder="Describe issue"></textarea>
-<button class="btn" onclick="submitIssue()">Submit</button>
+<!-- REPORT BAR -->
+<div class="report-bar">
+  <div class="report-bar-inner">
+    <div class="input-group">
+      <label>Your Name</label>
+      <input id="user" type="text" placeholder="Enter your name" autocomplete="off">
+    </div>
+    <div class="input-group">
+      <label>Area</label>
+      <select id="area">
+        <option value="">Select area...</option>
+        <option>Rohini</option>
+        <option>Dwarka</option>
+        <option>Janakpuri</option>
+        <option>Lajpat Nagar</option>
+        <option>Saket</option>
+        <option>Karol Bagh</option>
+        <option>Pitampura</option>
+        <option>Vasant Kunj</option>
+      </select>
+    </div>
+    <div class="input-group flex-grow">
+      <label>Issue Description</label>
+      <input id="desc" type="text" placeholder="e.g. Large pothole near metro gate causing accidents..." autocomplete="off">
+    </div>
+    <button class="report-btn" id="report-btn" onclick="submitIssue()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Report Issue
+    </button>
+  </div>
 </div>
 
-<div class="card"><h3>Map</h3><div id="map"></div></div>
+<!-- NGO ALERT BANNER (shown after report) -->
+<div id="ngo-alert" style="display:none;background:linear-gradient(90deg,rgba(79,126,248,0.1),rgba(124,92,252,0.07));border-bottom:1px solid rgba(79,126,248,0.2);padding:10px 32px;">
+  <div style="max-width:1600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
+      <span id="ngo-alert-icon" style="font-size:18px;"></span>
+      <strong style="color:var(--text);font-family:var(--font-display);" id="ngo-alert-name"></strong>
+      <span style="color:var(--text2);" id="ngo-alert-focus"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <a id="ngo-alert-email" href="#" style="font-size:12px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.3);padding:4px 12px;border-radius:6px;">📧 Email NGO</a>
+      <a id="ngo-alert-phone" href="#" style="font-size:12px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.3);padding:4px 12px;border-radius:6px;">📞 Call NGO</a>
+      <button onclick="document.getElementById('ngo-alert').style.display='none'" style="font-size:16px;background:none;border:none;color:var(--text3);cursor:pointer;">×</button>
+    </div>
+  </div>
+</div>
 
-<div class="card"><h3>Leaderboard</h3><div id="lb"></div></div>
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
 
-<div class="card"><h3>Issues</h3><div id="issues"></div></div>
+<!-- MAIN LAYOUT -->
+<div class="app-body">
 
+  <!-- LEFT: MAP -->
+  <div class="map-section">
+    <div class="section-header">
+      <h2 class="section-title">Issue Heatmap</h2>
+      <div class="legend">
+        <span><span class="legend-dot high"></span>High</span>
+        <span><span class="legend-dot medium"></span>Medium</span>
+        <span><span class="legend-dot low"></span>Low</span>
+      </div>
+    </div>
+    <div class="map-wrap">
+      <div id="map"></div>
+    </div>
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card">
+        <span class="stat-num" id="stat-total">—</span>
+        <span class="stat-label">Total Issues</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="stat-open">—</span>
+        <span class="stat-label">Open</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="stat-resolved">—</span>
+        <span class="stat-label">Resolved</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="stat-areas">—</span>
+        <span class="stat-label">Areas Affected</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: SIDE PANEL -->
+  <div class="side-panel">
+    <div class="tab-bar">
+      <button class="tab active" onclick="switchTab('issues', this)">Live Issues</button>
+      <button class="tab" onclick="switchTab('ngo', this)">NGO Contacts</button>
+      <button class="tab" onclick="switchTab('top', this)">Top Reporters</button>
+    </div>
+
+    <!-- ISSUES TAB -->
+    <div id="tab-issues" class="tab-content active">
+      <div class="issues-list" id="issues-list">
+        <div class="loading-state"><div class="spinner"></div><p>Loading issues...</p></div>
+      </div>
+    </div>
+
+    <!-- NGO TAB -->
+    <div id="tab-ngo" class="tab-content">
+      <div id="ngo-list" style="padding:10px;display:flex;flex-direction:column;gap:8px;">
+        <div class="loading-state"><div class="spinner"></div><p>Loading NGOs...</p></div>
+      </div>
+    </div>
+
+    <!-- TOP REPORTERS TAB -->
+    <div id="tab-top" class="tab-content">
+      <div class="leaderboard-mini" id="leaderboard-mini">
+        <div class="loading-state"><div class="spinner"></div><p>Loading...</p></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
-let map = L.map('map').setView([28.6,77.2],11);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+// ── MAP INIT ──────────────────────────────────────────
+let map = L.map('map', { zoomControl: false }).setView([28.6139, 77.2090], 11);
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© OpenStreetMap © CARTO', maxZoom: 19
+}).addTo(map);
+let mapLayers = [];
 
-async function submitIssue(){
-  const user = document.getElementById('user').value || "anonymous";
+// ── UTILS ─────────────────────────────────────────────
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'top') loadLeaderboardMini();
+  if (tab === 'ngo') loadNGOs();
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3500);
+}
+
+function tagColor(tag) {
+  const m = { pothole:'#ff7c38',garbage:'#84cc16',streetlight:'#ffc94a',
+               water:'#22d4e0',traffic:'#ff4069',noise:'#a78bfa',
+               sewage:'#fb923c',electricity:'#facc15',tree:'#4ade80' };
+  for (let k in m) if (tag && tag.toLowerCase().includes(k)) return m[k];
+  return '#7b86a0';
+}
+
+function statusBadge(s) {
+  if (s === 'resolved')  return '<span class="badge resolved">✓ Resolved</span>';
+  if (s === 'verified')  return '<span class="badge verified">● Verified</span>';
+  if (s === 'escalated') return '<span class="badge escalated">↑ Escalated</span>';
+  return '<span class="badge open">○ Open</span>';
+}
+
+// ── REPORT ────────────────────────────────────────────
+async function submitIssue() {
+  const user = document.getElementById('user').value.trim() || 'Anonymous';
   const area = document.getElementById('area').value;
-  const desc = document.getElementById('desc').value;
+  const desc = document.getElementById('desc').value.trim();
 
-  if(!area || !desc){
-    alert("Fill all fields");
-    return;
-  }
+  if (!area || !desc) { showToast('Please fill in area and description', 'error'); return; }
+  if (desc.length < 10) { showToast('Description too short!', 'error'); return; }
+
+  const btn = document.getElementById('report-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> Submitting...';
 
   try {
     const res = await fetch('/report', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        user: user,
-        area: area,
-        description: desc
-      })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user, area, description: desc })
     });
-
-    if(!res.ok){
-      alert("Server error");
-      return;
-    }
-
     const data = await res.json();
-    console.log("SUCCESS:", data);
 
-    // ✅ RESET FORM (THIS WAS MISSING)
-    document.getElementById('user').value = "";
-    document.getElementById('area').value = "";
-    document.getElementById('desc').value = "";
+    if (data.status === 'ok') {
+      showToast(`✓ Reported as "${data.tag}" · +10 pts`);
+      document.getElementById('desc').value = '';
+      document.getElementById('nav-user-display').textContent = user;
 
-    alert("Submitted!");
+      // Show NGO banner
+      if (data.ngo) {
+        const ngo = data.ngo;
+        document.getElementById('ngo-alert-icon').textContent = ngo.icon || '🏛️';
+        document.getElementById('ngo-alert-name').textContent = ngo.name;
+        document.getElementById('ngo-alert-focus').textContent = '— ' + ngo.focus;
+        document.getElementById('ngo-alert-email').href = 'mailto:' + ngo.contact;
+        document.getElementById('ngo-alert-phone').href = 'tel:' + ngo.phone;
+        document.getElementById('ngo-alert').style.display = 'block';
+      }
 
-    loadAll();
-
-  } catch(err){
-    console.error(err);
-    alert("Error connecting to server");
+      loadAll();
+    } else {
+      showToast(data.error || 'Error submitting', 'error');
+    }
+  } catch(e) {
+    showToast('Something went wrong. Try again.', 'error');
   }
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Report Issue';
 }
 
-async function loadAll(){
-loadIssues();loadMap();loadLB();
+// ── LOAD ISSUES ───────────────────────────────────────
+async function loadIssues() {
+  const data = await (await fetch('/issues')).json();
+
+  document.getElementById('stat-total').textContent    = data.length;
+  document.getElementById('stat-open').textContent     = data.filter(i => !i.status || i.status === 'open').length;
+  document.getElementById('stat-resolved').textContent = data.filter(i => i.status === 'resolved').length;
+
+  const list = document.getElementById('issues-list');
+  if (!data.length) {
+    list.innerHTML = '<div class="empty-state"><strong>No issues yet.</strong><br>Be the first to report one!</div>';
+    return;
+  }
+
+  list.innerHTML = data.slice().reverse().slice(0, 30).map(i => `
+    <div class="issue-card" data-id="${i.id}">
+      <div class="issue-top">
+        <div class="issue-area-tag">
+          <span class="area-name">${i.area}</span>
+          <span class="tag-chip" style="background:${tagColor(i.tag)}18;color:${tagColor(i.tag)}">${i.tag || 'other'}</span>
+        </div>
+        ${statusBadge(i.status)}
+      </div>
+      <p class="issue-desc">${i.description}</p>
+      <div class="issue-footer">
+        <span class="issue-reporter">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          ${i.user || 'Anonymous'}
+        </span>
+        <div class="issue-actions">
+          <button class="action-btn upvote" onclick="upvote(${i.id})">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+            ${i.upvotes || 0}
+          </button>
+          <button class="action-btn verify"   onclick="verify(${i.id})">✓</button>
+          <button class="action-btn resolve"  onclick="resolve(${i.id})">✔</button>
+          <button class="action-btn escalate" onclick="escalate(${i.id})" title="Escalate to NGO">↑ NGO</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
 }
 
-async function loadIssues(){
-let d=await (await fetch('/issues')).json();
-document.getElementById('issues').innerHTML=d.map(i=>`
-<div class="issue">
-<div>${i.area}<br>${i.description}<br>${i.status}</div>
-<div>
-<button onclick="up(${i.id})">👍${i.upvotes}</button>
-<button onclick="ver(${i.id})">✔</button>
-<button onclick="res(${i.id})">✅</button>
-</div>
-</div>`).join('');
+// ── LOAD MAP ──────────────────────────────────────────
+async function loadMap() {
+  const data = await (await fetch('/map-data')).json();
+  mapLayers.forEach(l => map.removeLayer(l));
+  mapLayers = [];
+  document.getElementById('stat-areas').textContent = data.length;
+
+  data.forEach(a => {
+    const cols = { high:'#ff4069', medium:'#ff7c38', low:'#1fd18a' };
+    const c = cols[a.heat] || '#1fd18a';
+
+    const circle = L.circle([a.lat, a.lng], {
+      radius: 2800, color: c, fillColor: c, fillOpacity: 0.15, weight: 1.5, opacity: 0.65
+    }).addTo(map);
+
+    circle.bindPopup(`
+      <div style="font-family:'Cabinet Grotesk',sans-serif;padding:4px 2px">
+        <strong style="font-size:15px;font-family:'Clash Display',sans-serif">${a.area}</strong><br>
+        <span style="color:${c};font-weight:700">${a.count} issue${a.count!==1?'s':''}</span>
+        <span style="color:#7b86a0;font-size:12px"> · ${a.heat} severity</span>
+      </div>
+    `);
+
+    const dot = L.circleMarker([a.lat, a.lng], {
+      radius: 5, color: c, fillColor: c, fillOpacity: 1, weight: 0
+    }).addTo(map);
+
+    mapLayers.push(circle, dot);
+  });
 }
 
-async function up(id){await fetch('/upvote/'+id,{method:'POST'});loadAll();}
-async function ver(id){await fetch('/verify/'+id,{method:'POST'});loadAll();}
-async function res(id){await fetch('/resolve/'+id,{method:'POST'});loadAll();}
+// ── LOAD NGO LIST ────────────────────────────────────
+async function loadNGOs() {
+  const data = await (await fetch('/ngo/all')).json();
+  const container = document.getElementById('ngo-list');
+  const entries = Object.entries(data).filter(([k]) => k !== 'default');
 
-async function loadLB(){
-let d=await (await fetch('/leaderboard')).json();
-document.getElementById('lb').innerHTML=d.map((u,i)=>`
-<div class="lb">#${i+1} ${u.name}<span>${u.points}</span></div>`).join('');
+  container.innerHTML = entries.map(([tag, ngo]) => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px 15px;">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px;">
+        <span style="font-size:18px">${ngo.icon || '🏛️'}</span>
+        <div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text)">${ngo.name}</div>
+          <div style="font-size:11px;color:var(--text2)">${ngo.focus}</div>
+        </div>
+        <span style="margin-left:auto;font-size:10px;font-weight:700;color:${tagColor(tag)};background:${tagColor(tag)}18;padding:2px 9px;border-radius:20px;text-transform:uppercase">${tag}</span>
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;">
+        <a href="mailto:${ngo.contact}" style="font-size:11px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.25);padding:4px 11px;border-radius:6px;background:rgba(79,126,248,0.07);">📧 ${ngo.contact}</a>
+        <a href="tel:${ngo.phone}" style="font-size:11px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.25);padding:4px 11px;border-radius:6px;background:rgba(31,209,138,0.07);">📞 ${ngo.phone}</a>
+      </div>
+    </div>
+  `).join('');
 }
 
-async function loadMap(){
-let d=await (await fetch('/map-data')).json();
-map.eachLayer(l=>{if(l instanceof L.Circle) map.removeLayer(l);});
-d.forEach(a=>{
-L.circle([a.lat,a.lng],{radius:3000,color:a.heat=="high"?"red":"orange"})
-.addTo(map).bindPopup(a.area);
+// ── LEADERBOARD MINI ──────────────────────────────────
+async function loadLeaderboardMini() {
+  const data = await (await fetch('/leaderboard')).json();
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('leaderboard-mini').innerHTML = !data.length
+    ? '<div class="empty-state">No contributors yet.</div>'
+    : data.map((u, i) => `
+        <div class="mini-rank">
+          <span class="rank-icon">${medals[i] || '#'+(i+1)}</span>
+          <span class="rank-name">${u.name}</span>
+          <span class="rank-pts">${u.points} pts</span>
+        </div>
+      `).join('');
+}
+
+// ── ACTIONS ───────────────────────────────────────────
+const getUser = () => document.getElementById('user').value.trim() || 'anonymous';
+
+async function upvote(id) {
+  await fetch('/upvote/' + id, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:getUser()}) });
+  showToast('⬆ Upvoted · +2 pts');
+  loadAll();
+}
+
+async function verify(id) {
+  await fetch('/verify/' + id, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:getUser()}) });
+  showToast('✓ Issue verified · +5 pts');
+  loadAll();
+}
+
+async function resolve(id) {
+  await fetch('/resolve/' + id, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:getUser()}) });
+  showToast('✔ Marked resolved · +20 pts 🎉');
+  loadAll();
+}
+
+async function escalate(id) {
+  const res  = await fetch('/ngo/escalate/' + id, { method:'POST', headers:{'Content-Type':'application/json'} });
+  const data = await res.json();
+  if (data.ngo) {
+    showToast(`↑ Escalated to ${data.ngo.name}`, 'ngo');
+  }
+  loadAll();
+}
+
+async function loadAll() {
+  loadIssues();
+  loadMap();
+}
+
+// ── INIT ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('desc').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitIssue();
+  });
+  loadAll();
 });
-}
-
-loadAll();
 </script>
-
 </body>
 </html>
