@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issues — AreaPulse</title>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=cabinet-grotesk@300,400,500,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="brand-dot"></div>
+    <span class="brand-name">AreaPulse</span>
+    <span class="brand-tag">Delhi</span>
+  </div>
+  <div class="nav-center">
+    <a href="/" class="nav-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      Live Map
+    </a>
+    <a href="/issues-page" class="nav-link active">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Issues
+    </a>
+    <a href="/leaderboard-page" class="nav-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Leaderboard
+    </a>
+  </div>
+  <div class="nav-right">
+    <div class="live-badge"><span class="live-dot"></span>Live</div>
+  </div>
+</nav>
+
+<div class="page-container">
+
+  <div class="page-hero">
+    <div>
+      <h1 class="page-title">All <span>Issues</span></h1>
+      <p class="page-subtitle">Browse, verify, and escalate civic problems reported across Delhi</p>
+    </div>
+    <div class="filter-bar">
+      <select id="filter-area" onchange="applyFilters()">
+        <option value="">All Areas</option>
+        <option>Rohini</option><option>Dwarka</option><option>Janakpuri</option>
+        <option>Lajpat Nagar</option><option>Saket</option><option>Karol Bagh</option>
+        <option>Pitampura</option><option>Vasant Kunj</option>
+      </select>
+      <select id="filter-tag" onchange="applyFilters()">
+        <option value="">All Tags</option>
+        <option>pothole</option><option>water</option><option>garbage</option>
+        <option>streetlight</option><option>traffic</option><option>noise</option>
+        <option>sewage</option><option>electricity</option><option>tree</option>
+      </select>
+      <select id="filter-status" onchange="applyFilters()">
+        <option value="">All Status</option>
+        <option value="open">Open</option>
+        <option value="verified">Verified</option>
+        <option value="resolved">Resolved</option>
+        <option value="escalated">Escalated</option>
+      </select>
+      <div class="search-wrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="search-input" type="text" placeholder="Search issues..." oninput="applyFilters()">
+      </div>
+    </div>
+  </div>
+
+  <div class="issues-summary" id="issues-summary"></div>
+  <div class="issues-grid" id="issues-grid">
+    <div class="loading-state"><div class="spinner"></div><p>Fetching issues...</p></div>
+  </div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+let allIssues  = [];
+let ngoRegistry = {};
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3500);
+}
+
+function tagColor(tag) {
+  const m = { pothole:'#ff7c38',garbage:'#84cc16',streetlight:'#ffc94a',
+               water:'#22d4e0',traffic:'#ff4069',noise:'#a78bfa',
+               sewage:'#fb923c',electricity:'#facc15',tree:'#4ade80' };
+  for (let k in m) if (tag && tag.toLowerCase().includes(k)) return m[k];
+  return '#7b86a0';
+}
+
+function statusBadge(s) {
+  if (s === 'resolved')  return '<span class="badge resolved">✓ Resolved</span>';
+  if (s === 'verified')  return '<span class="badge verified">● Verified</span>';
+  if (s === 'escalated') return '<span class="badge escalated">↑ Escalated</span>';
+  return '<span class="badge open">○ Open</span>';
+}
+
+function getNGOForTag(tag) {
+  tag = (tag || '').toLowerCase();
+  for (let key in ngoRegistry) {
+    if (key !== 'default' && tag.includes(key)) return ngoRegistry[key];
+  }
+  return ngoRegistry['default'] || null;
+}
+
+function applyFilters() {
+  const area   = document.getElementById('filter-area').value;
+  const tag    = document.getElementById('filter-tag').value;
+  const status = document.getElementById('filter-status').value;
+  const search = document.getElementById('search-input').value.toLowerCase();
+
+  let filtered = allIssues.filter(i => {
+    if (area   && i.area !== area) return false;
+    if (tag    && (i.tag || '') !== tag) return false;
+    if (status && (i.status || 'open') !== status) return false;
+    if (search && !i.description.toLowerCase().includes(search)
+               && !i.area.toLowerCase().includes(search)
+               && !(i.tag || '').toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  renderIssues(filtered);
+}
+
+function renderIssues(data) {
+  const grid = document.getElementById('issues-grid');
+  if (!data.length) {
+    grid.innerHTML = '<div class="empty-state"><strong>No issues match your filters.</strong><br>Try adjusting the search criteria.</div>';
+    return;
+  }
+
+  grid.innerHTML = data.slice().reverse().map(i => {
+    const ngo = getNGOForTag(i.tag);
+    const ngoHtml = ngo ? `
+      <div class="card-ngo">
+        <div class="card-ngo-info">
+          <span class="card-ngo-icon">${ngo.icon || '🏛️'}</span>
+          <span class="card-ngo-name">${ngo.name}</span>
+        </div>
+        <div class="card-ngo-actions">
+          <a href="mailto:${ngo.contact}" class="card-ngo-btn" title="Email NGO">📧 Email</a>
+          <a href="tel:${ngo.phone}" class="card-ngo-btn" title="Call NGO">📞 Call</a>
+          <button class="card-ngo-btn escalate-btn" onclick="escalate(${i.id})" title="Escalate to NGO">↑ Escalate</button>
+        </div>
+      </div>` : '';
+
+    return `
+    <div class="issue-card-full">
+      <div class="issue-top">
+        <div class="issue-area-tag">
+          <span class="area-name">${i.area}</span>
+          <span class="tag-chip" style="background:${tagColor(i.tag)}18;color:${tagColor(i.tag)}">${i.tag || 'other'}</span>
+        </div>
+        ${statusBadge(i.status)}
+      </div>
+      <p class="issue-desc">${i.description}</p>
+      <div class="issue-footer">
+        <span class="issue-reporter">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          ${i.user || 'Anonymous'}
+        </span>
+        <div class="issue-actions">
+          <button class="action-btn upvote" onclick="upvote(${i.id})">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+            ${i.upvotes || 0}
+          </button>
+          <button class="action-btn verify"  onclick="verify(${i.id})">✓ Verify</button>
+          <button class="action-btn resolve" onclick="resolve(${i.id})">✔ Resolve</button>
+        </div>
+      </div>
+      ${ngoHtml}
+    </div>`;
+  }).join('');
+}
+
+async function load() {
+  const [issuesRes, ngoRes] = await Promise.all([
+    fetch('/issues'),
+    fetch('/ngo/all')
+  ]);
+  allIssues   = await issuesRes.json();
+  ngoRegistry = await ngoRes.json();
+
+  const open     = allIssues.filter(i => !i.status || i.status === 'open').length;
+  const resolved = allIssues.filter(i => i.status === 'resolved').length;
+  const verified = allIssues.filter(i => i.status === 'verified').length;
+  const escalated = allIssues.filter(i => i.status === 'escalated').length;
+
+  document.getElementById('issues-summary').innerHTML = `
+    <div class="summary-chips">
+      <div class="summary-chip total"><strong>${allIssues.length}</strong> Total</div>
+      <div class="summary-chip open-c"><strong>${open}</strong> Open</div>
+      <div class="summary-chip verified-c"><strong>${verified}</strong> Verified</div>
+      <div class="summary-chip resolved-c"><strong>${resolved}</strong> Resolved</div>
+      ${escalated ? `<div class="summary-chip"><strong style="color:var(--orange)">${escalated}</strong> Escalated</div>` : ''}
+    </div>
+  `;
+
+  renderIssues(allIssues);
+}
+
+async function upvote(id) {
+  await fetch('/upvote/' + id, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({user:'anonymous'}) });
+  showToast('⬆ Upvoted · +2 pts');
+  load();
+}
+async function verify(id) {
+  await fetch('/verify/' + id, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({user:'anonymous'}) });
+  showToast('✓ Verified · +5 pts');
+  load();
+}
+async function resolve(id) {
+  await fetch('/resolve/' + id, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({user:'anonymous'}) });
+  showToast('✔ Resolved · +20 pts 🎉');
+  load();
+}
+async function escalate(id) {
+  const res  = await fetch('/ngo/escalate/' + id, { method: 'POST', headers: {'Content-Type':'application/json'} });
+  const data = await res.json();
+  showToast(`↑ Escalated to ${data.ngo?.name || 'NGO'}`, 'ngo');
+  load();
+}
+
+load();
+</script>
+</body>
+</html>
