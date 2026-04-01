@@ -1,13 +1,13 @@
 KEYWORDS = {
-    'pothole': ['pothole', 'road', 'crater', 'hole', 'bump', 'damaged road', 'broken road', 'khada'],
-    'water': ['water', 'leak', 'pipe', 'flood', 'drainage', 'sewage', 'naali', 'pani', 'overflow'],
-    'garbage': ['garbage', 'waste', 'trash', 'kachra', 'dump', 'litter', 'smell', 'refuse', 'filth'],
-    'streetlight': ['light', 'streetlight', 'lamp', 'dark', 'bulb', 'electric pole', 'batti'],
-    'traffic': ['traffic', 'signal', 'jam', 'congestion', 'accident', 'speed', 'zebra', 'crossing'],
-    'noise': ['noise', 'sound', 'loud', 'speaker', 'music', 'construction', 'drilling', 'awaz'],
-    'sewage': ['sewage', 'sewer', 'drain', 'blocked', 'overflow', 'stink', 'manhole', 'nali'],
-    'electricity': ['power', 'electric', 'current', 'wire', 'transformer', 'outage', 'bijli'],
-    'tree': ['tree', 'branch', 'fallen', 'blocking', 'park', 'garden', 'ped'],
+    'pothole':     ['pothole','road','crater','hole','bump','broken road','khada','damaged road','manhole cover'],
+    'water':       ['water','leak','pipe','flood','waterlog','pani','overflow','pipeline','burst','puddle'],
+    'garbage':     ['garbage','waste','trash','kachra','dump','litter','smell','refuse','filth','bin','burning'],
+    'streetlight': ['streetlight','street light','lamp post','dark street','batti','light pole'],
+    'traffic':     ['traffic','signal','jam','congestion','accident','zebra crossing','speed breaker'],
+    'noise':       ['noise','sound','loud','speaker','music','construction','drilling','awaz','loudspeaker'],
+    'sewage':      ['sewage','sewer','drain','blocked drain','stink','nali','naali','open drain'],
+    'electricity': ['power cut','electric','current','wire','transformer','outage','bijli','no electricity','shock'],
+    'tree':        ['tree','branch','fallen tree','blocking tree','ped','park','garden'],
 }
 
 def auto_tag(desc: str) -> str:

@@ -11,7 +11,6 @@
 </head>
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
   <div class="nav-brand">
     <div class="brand-dot"></div>
@@ -20,23 +19,24 @@
   </div>
   <div class="nav-center">
     <a href="/" class="nav-link active">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-      Live Map
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Live Map
     </a>
     <a href="/issues-page" class="nav-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      Issues
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Issues
     </a>
     <a href="/leaderboard-page" class="nav-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-      Leaderboard
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Leaderboard
+    </a>
+    <a href="/redeem-page" class="nav-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Redeem
     </a>
   </div>
   <div class="nav-right">
-    <div class="live-badge">
-      <span class="live-dot"></span>
-      Live
+    <div class="points-badge" id="nav-points" style="display:none">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--yellow)" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span id="nav-pts-val">0</span> pts
     </div>
+    <div class="live-badge"><span class="live-dot"></span>Live</div>
     <div class="user-pill" id="nav-user-display">Guest</div>
   </div>
 </nav>
@@ -50,17 +50,12 @@
     </div>
     <div class="input-group">
       <label>Area</label>
-      <select id="area">
-        <option value="">Select area...</option>
-        <option>Rohini</option>
-        <option>Dwarka</option>
-        <option>Janakpuri</option>
-        <option>Lajpat Nagar</option>
-        <option>Saket</option>
-        <option>Karol Bagh</option>
-        <option>Pitampura</option>
-        <option>Vasant Kunj</option>
-      </select>
+      <div class="area-wrap">
+        <select id="area"></select>
+        <button class="loc-btn" id="loc-btn" onclick="autoDetectLocation()" title="Auto-detect my location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg>
+        </button>
+      </div>
     </div>
     <div class="input-group flex-grow">
       <label>Issue Description</label>
@@ -73,8 +68,8 @@
   </div>
 </div>
 
-<!-- NGO ALERT BANNER (shown after report) -->
-<div id="ngo-alert" style="display:none;background:linear-gradient(90deg,rgba(79,126,248,0.1),rgba(124,92,252,0.07));border-bottom:1px solid rgba(79,126,248,0.2);padding:10px 32px;">
+<!-- NGO ALERT BANNER -->
+<div id="ngo-alert" style="display:none;background:linear-gradient(90deg,rgba(79,126,248,0.1),rgba(124,92,252,0.07));border-bottom:1px solid rgba(79,126,248,0.2);padding:10px 32px;position:relative;z-index:99;">
   <div style="max-width:1600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
     <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
       <span id="ngo-alert-icon" style="font-size:18px;"></span>
@@ -82,9 +77,9 @@
       <span style="color:var(--text2);" id="ngo-alert-focus"></span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <a id="ngo-alert-email" href="#" style="font-size:12px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.3);padding:4px 12px;border-radius:6px;">📧 Email NGO</a>
-      <a id="ngo-alert-phone" href="#" style="font-size:12px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.3);padding:4px 12px;border-radius:6px;">📞 Call NGO</a>
-      <button onclick="document.getElementById('ngo-alert').style.display='none'" style="font-size:16px;background:none;border:none;color:var(--text3);cursor:pointer;">×</button>
+      <a id="ngo-alert-email" href="#" style="font-size:12px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.3);padding:4px 12px;border-radius:6px;background:rgba(79,126,248,0.07);">📧 Email NGO</a>
+      <a id="ngo-alert-phone" href="#" style="font-size:12px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.3);padding:4px 12px;border-radius:6px;background:rgba(31,209,138,0.07);">📞 Call NGO</a>
+      <button onclick="document.getElementById('ngo-alert').style.display='none'" style="font-size:18px;background:none;border:none;color:var(--text3);cursor:pointer;line-height:1;">×</button>
     </div>
   </div>
 </div>
@@ -92,84 +87,122 @@
 <!-- TOAST -->
 <div id="toast" class="toast"></div>
 
+<!-- NEARBY NGO POPUP (shown after resolve) -->
+<div id="ngo-popup" class="ngo-popup" style="display:none;">
+  <div class="ngo-popup-inner">
+    <div class="ngo-popup-header">
+      <div>
+        <div class="ngo-popup-title">🎉 Issue Resolved! +20 pts</div>
+        <div class="ngo-popup-sub">Nearby NGOs that can help in your area:</div>
+      </div>
+      <button onclick="closeNGOPopup()" class="ngo-popup-close">×</button>
+    </div>
+    <div id="ngo-popup-list" class="ngo-popup-list"></div>
+  </div>
+</div>
+<div id="ngo-popup-overlay" class="ngo-popup-overlay" style="display:none;" onclick="closeNGOPopup()"></div>
+
 <!-- MAIN LAYOUT -->
 <div class="app-body">
-
-  <!-- LEFT: MAP -->
   <div class="map-section">
     <div class="section-header">
-      <h2 class="section-title">Issue Heatmap</h2>
+      <h2 class="section-title">Issue Heatmap — Delhi</h2>
       <div class="legend">
-        <span><span class="legend-dot high"></span>High</span>
-        <span><span class="legend-dot medium"></span>Medium</span>
-        <span><span class="legend-dot low"></span>Low</span>
+        <span><span class="legend-dot high"></span>High (8+)</span>
+        <span><span class="legend-dot medium"></span>Medium (4–7)</span>
+        <span><span class="legend-dot low"></span>Low (1–3)</span>
       </div>
     </div>
-    <div class="map-wrap">
-      <div id="map"></div>
-    </div>
-    <div class="stats-row" id="stats-row">
-      <div class="stat-card">
-        <span class="stat-num" id="stat-total">—</span>
-        <span class="stat-label">Total Issues</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-num" id="stat-open">—</span>
-        <span class="stat-label">Open</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-num" id="stat-resolved">—</span>
-        <span class="stat-label">Resolved</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-num" id="stat-areas">—</span>
-        <span class="stat-label">Areas Affected</span>
-      </div>
+    <div class="map-wrap"><div id="map"></div></div>
+    <div class="stats-row">
+      <div class="stat-card"><span class="stat-num" id="stat-total">—</span><span class="stat-label">Total Issues</span></div>
+      <div class="stat-card"><span class="stat-num" id="stat-open">—</span><span class="stat-label">Open</span></div>
+      <div class="stat-card"><span class="stat-num" id="stat-resolved">—</span><span class="stat-label">Resolved</span></div>
+      <div class="stat-card"><span class="stat-num" id="stat-areas">—</span><span class="stat-label">Areas Affected</span></div>
     </div>
   </div>
 
-  <!-- RIGHT: SIDE PANEL -->
   <div class="side-panel">
     <div class="tab-bar">
-      <button class="tab active" onclick="switchTab('issues', this)">Live Issues</button>
-      <button class="tab" onclick="switchTab('ngo', this)">NGO Contacts</button>
-      <button class="tab" onclick="switchTab('top', this)">Top Reporters</button>
+      <button class="tab active" onclick="switchTab('issues',this)">Live Issues</button>
+      <button class="tab" onclick="switchTab('ngo',this)">NGOs</button>
+      <button class="tab" onclick="switchTab('top',this)">Top Reporters</button>
     </div>
-
-    <!-- ISSUES TAB -->
     <div id="tab-issues" class="tab-content active">
-      <div class="issues-list" id="issues-list">
-        <div class="loading-state"><div class="spinner"></div><p>Loading issues...</p></div>
-      </div>
+      <div class="issues-list" id="issues-list"><div class="loading-state"><div class="spinner"></div><p>Loading...</p></div></div>
     </div>
-
-    <!-- NGO TAB -->
     <div id="tab-ngo" class="tab-content">
-      <div id="ngo-list" style="padding:10px;display:flex;flex-direction:column;gap:8px;">
-        <div class="loading-state"><div class="spinner"></div><p>Loading NGOs...</p></div>
-      </div>
+      <div id="ngo-list" style="padding:10px;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
-
-    <!-- TOP REPORTERS TAB -->
     <div id="tab-top" class="tab-content">
-      <div class="leaderboard-mini" id="leaderboard-mini">
-        <div class="loading-state"><div class="spinner"></div><p>Loading...</p></div>
-      </div>
+      <div class="leaderboard-mini" id="leaderboard-mini"><div class="loading-state"><div class="spinner"></div></div></div>
     </div>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ── MAP INIT ──────────────────────────────────────────
-let map = L.map('map', { zoomControl: false }).setView([28.6139, 77.2090], 11);
+let map, mapLayers = [], userLat = null, userLng = null;
+let currentUser = '';
+
+map = L.map('map', { zoomControl: false }).setView([28.6139, 77.2090], 11);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   attribution: '© OpenStreetMap © CARTO', maxZoom: 19
 }).addTo(map);
-let mapLayers = [];
 
-// ── UTILS ─────────────────────────────────────────────
+async function loadAreas() {
+  const areas = await (await fetch('/areas')).json();
+  const sel = document.getElementById('area');
+  sel.innerHTML = '<option value="">Select area...</option>' +
+    areas.map(a => `<option value="${a}">${a}</option>`).join('');
+}
+
+function autoDetectLocation() {
+  const btn = document.getElementById('loc-btn');
+  btn.style.opacity = '0.5';
+  btn.innerHTML = '<div class="spinner" style="width:12px;height:12px;border-width:2px;"></div>';
+  if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); return; }
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      userLat = pos.coords.latitude; userLng = pos.coords.longitude;
+      L.circleMarker([userLat, userLng], { radius: 8, color: '#4f7ef8', fillColor: '#4f7ef8', fillOpacity: 1, weight: 3 }).addTo(map).bindPopup('<strong style="color:#eef0f6">📍 Your Location</strong>').openPopup();
+      map.setView([userLat, userLng], 13);
+      const nearestArea = await findNearestArea(userLat, userLng);
+      if (nearestArea) { document.getElementById('area').value = nearestArea; showToast(`📍 Location detected: ${nearestArea}`); }
+      btn.style.opacity = '1';
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg>';
+    },
+    () => {
+      showToast('Could not detect location', 'error');
+      btn.style.opacity = '1';
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg>';
+    }
+  );
+}
+
+async function findNearestArea(lat, lng) {
+  const AREAS = {
+    'Connaught Place':[28.6315,77.2167],'Karol Bagh':[28.6514,77.1907],'Paharganj':[28.6448,77.2167],
+    'Chandni Chowk':[28.6506,77.2303],'Rohini':[28.7041,77.1025],'Pitampura':[28.7007,77.1311],
+    'Model Town':[28.7167,77.1900],'Shalimar Bagh':[28.7167,77.1667],'Burari':[28.7470,77.2100],
+    'Saket':[28.5244,77.2090],'Vasant Kunj':[28.5200,77.1590],'Mehrauli':[28.5244,77.1855],
+    'Malviya Nagar':[28.5355,77.2068],'Hauz Khas':[28.5494,77.2001],'Greater Kailash':[28.5494,77.2378],
+    'Lajpat Nagar':[28.5677,77.2378],'Kalkaji':[28.5494,77.2590],'Dwarka':[28.5921,77.0460],
+    'Janakpuri':[28.6219,77.0878],'Uttam Nagar':[28.6219,77.0560],'Vikaspuri':[28.6355,77.0720],
+    'Laxmi Nagar':[28.6310,77.2780],'Preet Vihar':[28.6355,77.2944],'Shahdara':[28.6706,77.2944],
+    'Mayur Vihar':[28.6090,77.2944],'Patparganj':[28.6219,77.3012],'Rajouri Garden':[28.6447,77.1220],
+    'Punjabi Bagh':[28.6590,77.1311],'Geeta Colony':[28.6590,77.2780],'Narela':[28.8530,77.0920],
+    'Nangloi':[28.6706,77.0590],'Daryaganj':[28.6417,77.2353],'Okhla':[28.5355,77.2780],
+  };
+  let best = null, bestDist = Infinity;
+  for (const [name, [alat, alng]] of Object.entries(AREAS)) {
+    const d = Math.sqrt((lat-alat)**2 + (lng-alng)**2);
+    if (d < bestDist) { bestDist = d; best = name; }
+  }
+  return best;
+}
+
 function switchTab(tab, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -181,53 +214,44 @@ function switchTab(tab, el) {
 
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show ' + type;
+  t.textContent = msg; t.className = 'toast show ' + type;
   setTimeout(() => t.className = 'toast', 3500);
 }
 
 function tagColor(tag) {
-  const m = { pothole:'#ff7c38',garbage:'#84cc16',streetlight:'#ffc94a',
-               water:'#22d4e0',traffic:'#ff4069',noise:'#a78bfa',
-               sewage:'#fb923c',electricity:'#facc15',tree:'#4ade80' };
+  const m = {pothole:'#ff7c38',garbage:'#84cc16',streetlight:'#ffc94a',water:'#22d4e0',
+             traffic:'#ff4069',noise:'#a78bfa',sewage:'#fb923c',electricity:'#facc15',tree:'#4ade80'};
   for (let k in m) if (tag && tag.toLowerCase().includes(k)) return m[k];
   return '#7b86a0';
 }
 
 function statusBadge(s) {
-  if (s === 'resolved')  return '<span class="badge resolved">✓ Resolved</span>';
-  if (s === 'verified')  return '<span class="badge verified">● Verified</span>';
-  if (s === 'escalated') return '<span class="badge escalated">↑ Escalated</span>';
+  if (s==='resolved')  return '<span class="badge resolved">✓ Resolved</span>';
+  if (s==='verified')  return '<span class="badge verified">● Verified</span>';
+  if (s==='escalated') return '<span class="badge escalated">↑ Escalated</span>';
   return '<span class="badge open">○ Open</span>';
 }
 
-// ── REPORT ────────────────────────────────────────────
 async function submitIssue() {
   const user = document.getElementById('user').value.trim() || 'Anonymous';
   const area = document.getElementById('area').value;
   const desc = document.getElementById('desc').value.trim();
-
-  if (!area || !desc) { showToast('Please fill in area and description', 'error'); return; }
+  if (!area || !desc) { showToast('Fill in area and description', 'error'); return; }
   if (desc.length < 10) { showToast('Description too short!', 'error'); return; }
-
   const btn = document.getElementById('report-btn');
   btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> Submitting...';
-
+  btn.innerHTML = '<div class="spinner" style="width:15px;height:15px;border-width:2px;"></div> Submitting...';
   try {
     const res = await fetch('/report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user, area, description: desc })
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ user, area, description: desc, lat: userLat, lng: userLng })
     });
     const data = await res.json();
-
     if (data.status === 'ok') {
       showToast(`✓ Reported as "${data.tag}" · +10 pts`);
       document.getElementById('desc').value = '';
+      currentUser = user;
       document.getElementById('nav-user-display').textContent = user;
-
-      // Show NGO banner
       if (data.ngo) {
         const ngo = data.ngo;
         document.getElementById('ngo-alert-icon').textContent = ngo.icon || '🏛️';
@@ -237,173 +261,173 @@ async function submitIssue() {
         document.getElementById('ngo-alert-phone').href = 'tel:' + ngo.phone;
         document.getElementById('ngo-alert').style.display = 'block';
       }
-
-      loadAll();
-    } else {
-      showToast(data.error || 'Error submitting', 'error');
-    }
-  } catch(e) {
-    showToast('Something went wrong. Try again.', 'error');
-  }
-
+      updatePointsBadge(user); loadAll();
+    } else { showToast(data.error || 'Error', 'error'); }
+  } catch(e) { showToast('Server error. Try again.', 'error'); }
   btn.disabled = false;
   btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Report Issue';
 }
 
-// ── LOAD ISSUES ───────────────────────────────────────
+async function updatePointsBadge(user) {
+  if (!user) return;
+  const d = await (await fetch('/user/points?name=' + encodeURIComponent(user))).json();
+  document.getElementById('nav-pts-val').textContent = d.points;
+  document.getElementById('nav-points').style.display = 'flex';
+}
+
 async function loadIssues() {
   const data = await (await fetch('/issues')).json();
-
   document.getElementById('stat-total').textContent    = data.length;
-  document.getElementById('stat-open').textContent     = data.filter(i => !i.status || i.status === 'open').length;
-  document.getElementById('stat-resolved').textContent = data.filter(i => i.status === 'resolved').length;
-
+  document.getElementById('stat-open').textContent     = data.filter(i=>!i.status||i.status==='open').length;
+  document.getElementById('stat-resolved').textContent = data.filter(i=>i.status==='resolved').length;
   const list = document.getElementById('issues-list');
-  if (!data.length) {
-    list.innerHTML = '<div class="empty-state"><strong>No issues yet.</strong><br>Be the first to report one!</div>';
-    return;
-  }
-
-  list.innerHTML = data.slice().reverse().slice(0, 30).map(i => `
-    <div class="issue-card" data-id="${i.id}">
+  if (!data.length) { list.innerHTML = '<div class="empty-state">No issues yet.<br><strong>Be the first to report!</strong></div>'; return; }
+  list.innerHTML = data.slice().reverse().slice(0,30).map(i => `
+    <div class="issue-card">
       <div class="issue-top">
         <div class="issue-area-tag">
           <span class="area-name">${i.area}</span>
-          <span class="tag-chip" style="background:${tagColor(i.tag)}18;color:${tagColor(i.tag)}">${i.tag || 'other'}</span>
+          <span class="tag-chip" style="background:${tagColor(i.tag)}18;color:${tagColor(i.tag)}">${i.tag||'other'}</span>
         </div>
         ${statusBadge(i.status)}
       </div>
       <p class="issue-desc">${i.description}</p>
       <div class="issue-footer">
         <span class="issue-reporter">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          ${i.user || 'Anonymous'}
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          ${i.user||'Anonymous'}
         </span>
         <div class="issue-actions">
           <button class="action-btn upvote" onclick="upvote(${i.id})">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-            ${i.upvotes || 0}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+            ${i.upvotes||0}
           </button>
           <button class="action-btn verify"   onclick="verify(${i.id})">✓</button>
-          <button class="action-btn resolve"  onclick="resolve(${i.id})">✔</button>
-          <button class="action-btn escalate" onclick="escalate(${i.id})" title="Escalate to NGO">↑ NGO</button>
+          <button class="action-btn resolve"  onclick="resolveIssue(${i.id})">✔</button>
+          <button class="action-btn escalate" onclick="escalate(${i.id})">↑NGO</button>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-// ── LOAD MAP ──────────────────────────────────────────
 async function loadMap() {
   const data = await (await fetch('/map-data')).json();
-  mapLayers.forEach(l => map.removeLayer(l));
-  mapLayers = [];
+  mapLayers.forEach(l => map.removeLayer(l)); mapLayers = [];
   document.getElementById('stat-areas').textContent = data.length;
-
   data.forEach(a => {
-    const cols = { high:'#ff4069', medium:'#ff7c38', low:'#1fd18a' };
+    const cols = {high:'#ff4069', medium:'#ff9c38', low:'#1fd18a'};
     const c = cols[a.heat] || '#1fd18a';
-
-    const circle = L.circle([a.lat, a.lng], {
-      radius: 2800, color: c, fillColor: c, fillOpacity: 0.15, weight: 1.5, opacity: 0.65
-    }).addTo(map);
-
+    const radius = 1800 + (a.count * 200);
+    const circle = L.circle([a.lat, a.lng], { radius, color: c, fillColor: c, fillOpacity: 0.15, weight: 1.5, opacity: 0.7 }).addTo(map);
+    if (a.heat === 'high') {
+      const outer = L.circle([a.lat, a.lng], { radius: radius + 500, color: c, fillColor: 'transparent', fillOpacity: 0, weight: 1, opacity: 0.3, dashArray: '6 4' }).addTo(map);
+      mapLayers.push(outer);
+    }
+    const heatLabel = {high:'🔴 High Severity', medium:'🟠 Medium Severity', low:'🟢 Low Severity'};
     circle.bindPopup(`
-      <div style="font-family:'Cabinet Grotesk',sans-serif;padding:4px 2px">
-        <strong style="font-size:15px;font-family:'Clash Display',sans-serif">${a.area}</strong><br>
-        <span style="color:${c};font-weight:700">${a.count} issue${a.count!==1?'s':''}</span>
-        <span style="color:#7b86a0;font-size:12px"> · ${a.heat} severity</span>
-      </div>
-    `);
-
-    const dot = L.circleMarker([a.lat, a.lng], {
-      radius: 5, color: c, fillColor: c, fillOpacity: 1, weight: 0
-    }).addTo(map);
-
+      <div style="font-family:'Cabinet Grotesk',sans-serif;min-width:160px">
+        <strong style="font-size:15px;font-family:'Clash Display',sans-serif;color:#eef0f6">${a.area}</strong><br>
+        <span style="color:${c};font-weight:700;font-size:13px">${a.count} issue${a.count!==1?'s':''}</span><br>
+        <span style="color:#7b86a0;font-size:12px">${heatLabel[a.heat]}</span>
+      </div>`);
+    const dot = L.circleMarker([a.lat, a.lng], { radius: 5, color: c, fillColor: c, fillOpacity: 1, weight: 0 }).addTo(map);
     mapLayers.push(circle, dot);
   });
 }
 
-// ── LOAD NGO LIST ────────────────────────────────────
 async function loadNGOs() {
   const data = await (await fetch('/ngo/all')).json();
-  const container = document.getElementById('ngo-list');
-  const entries = Object.entries(data).filter(([k]) => k !== 'default');
-
-  container.innerHTML = entries.map(([tag, ngo]) => `
+  const list = document.getElementById('ngo-list');
+  const entries = Object.entries(data).filter(([k])=>k!=='default');
+  list.innerHTML = entries.map(([tag, ngo]) => `
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px 15px;">
-      <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px;">
-        <span style="font-size:18px">${ngo.icon || '🏛️'}</span>
-        <div>
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
+        <span style="font-size:20px">${ngo.icon||'🏛️'}</span>
+        <div style="flex:1;min-width:0">
           <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text)">${ngo.name}</div>
           <div style="font-size:11px;color:var(--text2)">${ngo.focus}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">📍 ${ngo.address}</div>
         </div>
-        <span style="margin-left:auto;font-size:10px;font-weight:700;color:${tagColor(tag)};background:${tagColor(tag)}18;padding:2px 9px;border-radius:20px;text-transform:uppercase">${tag}</span>
+        <span style="font-size:9px;font-weight:800;color:${tagColor(tag)};background:${tagColor(tag)}18;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0">${tag}</span>
       </div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap;">
-        <a href="mailto:${ngo.contact}" style="font-size:11px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.25);padding:4px 11px;border-radius:6px;background:rgba(79,126,248,0.07);">📧 ${ngo.contact}</a>
-        <a href="tel:${ngo.phone}" style="font-size:11px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.25);padding:4px 11px;border-radius:6px;background:rgba(31,209,138,0.07);">📞 ${ngo.phone}</a>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <a href="mailto:${ngo.contact}" style="font-size:11px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.25);padding:4px 10px;border-radius:6px;background:rgba(79,126,248,0.07);">📧 Email</a>
+        <a href="tel:${ngo.phone}" style="font-size:11px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.25);padding:4px 10px;border-radius:6px;background:rgba(31,209,138,0.07);">📞 ${ngo.phone}</a>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-// ── LEADERBOARD MINI ──────────────────────────────────
 async function loadLeaderboardMini() {
   const data = await (await fetch('/leaderboard')).json();
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('leaderboard-mini').innerHTML = !data.length
     ? '<div class="empty-state">No contributors yet.</div>'
-    : data.map((u, i) => `
+    : data.map((u,i)=>`
         <div class="mini-rank">
-          <span class="rank-icon">${medals[i] || '#'+(i+1)}</span>
+          <span class="rank-icon">${medals[i]||'#'+(i+1)}</span>
           <span class="rank-name">${u.name}</span>
           <span class="rank-pts">${u.points} pts</span>
-        </div>
-      `).join('');
+        </div>`).join('');
 }
 
-// ── ACTIONS ───────────────────────────────────────────
 const getUser = () => document.getElementById('user').value.trim() || 'anonymous';
 
 async function upvote(id) {
-  await fetch('/upvote/' + id, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:getUser()}) });
-  showToast('⬆ Upvoted · +2 pts');
-  loadAll();
+  await fetch('/upvote/'+id, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:getUser()})});
+  showToast('⬆ Upvoted · +2 pts'); loadAll(); updatePointsBadge(getUser());
 }
-
 async function verify(id) {
-  await fetch('/verify/' + id, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:getUser()}) });
-  showToast('✓ Issue verified · +5 pts');
-  loadAll();
+  await fetch('/verify/'+id, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:getUser()})});
+  showToast('✓ Verified · +5 pts'); loadAll(); updatePointsBadge(getUser());
 }
-
-async function resolve(id) {
-  await fetch('/resolve/' + id, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:getUser()}) });
-  showToast('✔ Marked resolved · +20 pts 🎉');
-  loadAll();
-}
-
-async function escalate(id) {
-  const res  = await fetch('/ngo/escalate/' + id, { method:'POST', headers:{'Content-Type':'application/json'} });
+async function resolveIssue(id) {
+  const res  = await fetch('/resolve/'+id, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:getUser()})});
   const data = await res.json();
-  if (data.ngo) {
-    showToast(`↑ Escalated to ${data.ngo.name}`, 'ngo');
-  }
-  loadAll();
+  loadAll(); updatePointsBadge(getUser());
+  if (data.nearby_ngos && data.nearby_ngos.length) { showNGOPopup(data.nearby_ngos); }
+  else { showToast('✔ Resolved · +20 pts 🎉'); }
+}
+async function escalate(id) {
+  const res  = await fetch('/ngo/escalate/'+id, {method:'POST',headers:{'Content-Type':'application/json'}});
+  const data = await res.json();
+  showToast(`↑ Escalated to ${data.ngo?.name||'NGO'}`, 'ngo'); loadAll();
 }
 
-async function loadAll() {
-  loadIssues();
-  loadMap();
+function showNGOPopup(ngos) {
+  const list = document.getElementById('ngo-popup-list');
+  list.innerHTML = ngos.map(ngo => `
+    <div class="ngo-popup-card">
+      <div class="ngo-popup-card-left">
+        <span style="font-size:22px">${ngo.icon||'🏛️'}</span>
+        <div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text)">${ngo.name}</div>
+          <div style="font-size:11px;color:var(--text2)">${ngo.focus}</div>
+          <div style="font-size:10px;color:var(--text3)">📍 ${ngo.address} · <span style="color:var(--accent)">${ngo.distance_km} km away</span></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <a href="mailto:${ngo.contact}" style="font-size:11px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.25);padding:5px 10px;border-radius:6px;background:rgba(79,126,248,0.07);">📧</a>
+        <a href="tel:${ngo.phone}" style="font-size:11px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.25);padding:5px 10px;border-radius:6px;background:rgba(31,209,138,0.07);">📞</a>
+      </div>
+    </div>`).join('');
+  document.getElementById('ngo-popup').style.display = 'flex';
+  document.getElementById('ngo-popup-overlay').style.display = 'block';
 }
 
-// ── INIT ──────────────────────────────────────────────
+function closeNGOPopup() {
+  document.getElementById('ngo-popup').style.display = 'none';
+  document.getElementById('ngo-popup-overlay').style.display = 'none';
+  showToast('✔ Issue resolved · +20 pts 🎉');
+}
+
+async function loadAll() { loadIssues(); loadMap(); }
+
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('desc').addEventListener('keydown', e => {
-    if (e.key === 'Enter') submitIssue();
+  loadAreas(); loadAll();
+  document.getElementById('desc').addEventListener('keydown', e => { if(e.key==='Enter') submitIssue(); });
+  document.getElementById('user').addEventListener('blur', e => {
+    if (e.target.value.trim()) updatePointsBadge(e.target.value.trim());
   });
-  loadAll();
 });
 </script>
 </body>
