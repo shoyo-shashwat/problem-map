@@ -9,34 +9,18 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
 <nav class="navbar">
-  <div class="nav-brand">
-    <div class="brand-dot"></div>
-    <span class="brand-name">AreaPulse</span>
-    <span class="brand-tag">Delhi</span>
-  </div>
+  <div class="nav-brand"><div class="brand-dot"></div><span class="brand-name">AreaPulse</span><span class="brand-tag">Delhi</span></div>
   <div class="nav-center">
-    <a href="/" class="nav-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-      Live Map
-    </a>
-    <a href="/issues-page" class="nav-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      Issues
-    </a>
-    <a href="/leaderboard-page" class="nav-link active">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-      Leaderboard
-    </a>
+    <a href="/" class="nav-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Live Map</a>
+    <a href="/issues-page" class="nav-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Issues</a>
+    <a href="/leaderboard-page" class="nav-link active"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Leaderboard</a>
+    <a href="/redeem-page" class="nav-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Redeem</a>
   </div>
-  <div class="nav-right">
-    <div class="live-badge"><span class="live-dot"></span>Live</div>
-  </div>
+  <div class="nav-right"><div class="live-badge"><span class="live-dot"></span>Live</div></div>
 </nav>
 
 <div class="page-container">
-
   <div class="page-hero">
     <div>
       <h1 class="page-title">Leader<span>board</span></h1>
@@ -44,106 +28,60 @@
     </div>
   </div>
 
-  <!-- HOW POINTS WORK -->
   <div class="points-explainer">
-    <div class="points-item">
-      <span class="pts-icon">📍</span>
-      <span class="pts-label">Report Issue</span>
-      <span class="pts-val">+10 pts</span>
-    </div>
+    <div class="points-item"><span class="pts-icon">📍</span><span class="pts-label">Report Issue</span><span class="pts-val">+10 pts</span></div>
     <div class="points-divider"></div>
-    <div class="points-item">
-      <span class="pts-icon">⬆</span>
-      <span class="pts-label">Upvote</span>
-      <span class="pts-val">+2 pts</span>
-    </div>
+    <div class="points-item"><span class="pts-icon">⬆</span><span class="pts-label">Upvote</span><span class="pts-val">+2 pts</span></div>
     <div class="points-divider"></div>
-    <div class="points-item">
-      <span class="pts-icon">✓</span>
-      <span class="pts-label">Verify Issue</span>
-      <span class="pts-val">+5 pts</span>
-    </div>
+    <div class="points-item"><span class="pts-icon">✓</span><span class="pts-label">Verify Issue</span><span class="pts-val">+5 pts</span></div>
     <div class="points-divider"></div>
-    <div class="points-item">
-      <span class="pts-icon">✔</span>
-      <span class="pts-label">Resolve Issue</span>
-      <span class="pts-val">+20 pts</span>
-    </div>
+    <div class="points-item"><span class="pts-icon">✔</span><span class="pts-label">Resolve Issue</span><span class="pts-val">+20 pts</span></div>
+    <div class="points-divider"></div>
+    <div class="points-item"><span class="pts-icon">🎁</span><span class="pts-label">Redeem Rewards</span><span class="pts-val" style="font-size:13px">Metro, Cash & more</span></div>
   </div>
 
-  <!-- TOP 3 PODIUM -->
-  <div class="podium-row" id="podium-row">
-    <div class="loading-state"><div class="spinner"></div></div>
-  </div>
-
-  <!-- FULL LEADERBOARD -->
+  <div class="podium-row" id="podium-row"><div class="loading-state"><div class="spinner"></div></div></div>
   <div class="leaderboard-table" id="leaderboard-table"></div>
-
 </div>
 
 <script>
 async function load() {
-  const res = await fetch('/leaderboard');
-  const data = await res.json();
-
+  const data = await (await fetch('/leaderboard')).json();
   if (!data.length) {
-    document.getElementById('podium-row').innerHTML = '<div class="empty-state"><strong>No contributors yet.</strong><br>Be the first to report an issue!</div>';
-    document.getElementById('leaderboard-table').innerHTML = '';
+    document.getElementById('podium-row').innerHTML = '<div class="empty-state"><strong>No contributors yet.</strong><br>Be the first!</div>';
     return;
   }
-
-  // ── PODIUM (top 3) ──────────────────────────────────
   const top3 = data.slice(0, 3);
-  // Reorder: 2nd, 1st, 3rd
-  const podiumOrder  = top3.length >= 2 ? [top3[1], top3[0], top3[2]].filter(Boolean) : top3;
-  const podiumClass  = top3.length >= 2 ? ['second', 'first', 'third'] : ['first'];
-  const podiumEmoji  = { first: '🥇', second: '🥈', third: '🥉' };
-  const podiumHeights = { first: '0', second: '30px', third: '50px' };
+  const order = top3.length >= 2 ? [top3[1],top3[0],top3[2]].filter(Boolean) : top3;
+  const classes = top3.length >= 2 ? ['second','first','third'] : ['first'];
+  const emoji = {first:'🥇',second:'🥈',third:'🥉'};
+  const mbottom = {first:'0',second:'28px',third:'48px'};
 
-  document.getElementById('podium-row').innerHTML = podiumOrder.map((u, i) => {
-    const cls = podiumClass[i] || 'first';
-    return `
-    <div class="podium-card ${cls}" style="margin-bottom:${podiumHeights[cls] || '0'}">
+  document.getElementById('podium-row').innerHTML = order.map((u,i) => {
+    const cls = classes[i]||'first';
+    return `<div class="podium-card ${cls}" style="margin-bottom:${mbottom[cls]||'0'}">
       <div class="podium-avatar">${u.name.charAt(0).toUpperCase()}</div>
       <div class="podium-name">${u.name}</div>
       <div class="podium-pts">${u.points} pts</div>
-      <div class="podium-rank">${podiumEmoji[cls]}</div>
+      <div class="podium-rank">${emoji[cls]}</div>
     </div>`;
   }).join('');
 
-  // ── FULL TABLE (rank 4+) ────────────────────────────
-  if (data.length <= 3) {
-    document.getElementById('leaderboard-table').innerHTML = '';
-    return;
-  }
+  if (data.length <= 3) { document.getElementById('leaderboard-table').innerHTML=''; return; }
 
   document.getElementById('leaderboard-table').innerHTML = `
-    <div class="table-header">
-      <span>Rank</span>
-      <span>Contributor</span>
-      <span>Points</span>
-      <span>Level</span>
-    </div>
-    ${data.slice(3).map((u, i) => {
-      const rank  = i + 4;
-      const level = u.points >= 500 ? '🔥 Champion'
-                  : u.points >= 200 ? '⚡ Active'
-                  : u.points >= 50  ? '🌱 Rising'
-                  : '👤 Newcomer';
-      return `
-      <div class="table-row">
+    <div class="table-header"><span>Rank</span><span>Contributor</span><span>Points</span><span>Level</span></div>
+    ${data.slice(3).map((u,i) => {
+      const rank = i+4;
+      const lvl = u.points>=500?'🔥 Champion':u.points>=200?'⚡ Active':u.points>=50?'🌱 Rising':'👤 Newcomer';
+      return `<div class="table-row">
         <span class="table-rank">#${rank}</span>
-        <span class="table-name">
-          <div class="table-avatar">${u.name.charAt(0).toUpperCase()}</div>
-          ${u.name}
-        </span>
+        <span class="table-name"><div class="table-avatar">${u.name.charAt(0).toUpperCase()}</div>${u.name}</span>
         <span class="table-pts">${u.points} pts</span>
-        <span class="table-level">${level}</span>
+        <span class="table-level">${lvl}</span>
       </div>`;
-    }).join('')}
-  `;
+    }).join('')}`;
 }
-
 load();
 </script>
 </body>

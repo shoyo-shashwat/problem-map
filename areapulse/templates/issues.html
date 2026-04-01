@@ -9,46 +9,25 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
 <nav class="navbar">
-  <div class="nav-brand">
-    <div class="brand-dot"></div>
-    <span class="brand-name">AreaPulse</span>
-    <span class="brand-tag">Delhi</span>
-  </div>
+  <div class="nav-brand"><div class="brand-dot"></div><span class="brand-name">AreaPulse</span><span class="brand-tag">Delhi</span></div>
   <div class="nav-center">
-    <a href="/" class="nav-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-      Live Map
-    </a>
-    <a href="/issues-page" class="nav-link active">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      Issues
-    </a>
-    <a href="/leaderboard-page" class="nav-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-      Leaderboard
-    </a>
+    <a href="/" class="nav-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Live Map</a>
+    <a href="/issues-page" class="nav-link active"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Issues</a>
+    <a href="/leaderboard-page" class="nav-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Leaderboard</a>
+    <a href="/redeem-page" class="nav-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Redeem</a>
   </div>
-  <div class="nav-right">
-    <div class="live-badge"><span class="live-dot"></span>Live</div>
-  </div>
+  <div class="nav-right"><div class="live-badge"><span class="live-dot"></span>Live</div></div>
 </nav>
 
 <div class="page-container">
-
   <div class="page-hero">
     <div>
       <h1 class="page-title">All <span>Issues</span></h1>
       <p class="page-subtitle">Browse, verify, and escalate civic problems reported across Delhi</p>
     </div>
     <div class="filter-bar">
-      <select id="filter-area" onchange="applyFilters()">
-        <option value="">All Areas</option>
-        <option>Rohini</option><option>Dwarka</option><option>Janakpuri</option>
-        <option>Lajpat Nagar</option><option>Saket</option><option>Karol Bagh</option>
-        <option>Pitampura</option><option>Vasant Kunj</option>
-      </select>
+      <select id="filter-area" onchange="applyFilters()"><option value="">All Areas</option></select>
       <select id="filter-tag" onchange="applyFilters()">
         <option value="">All Tags</option>
         <option>pothole</option><option>water</option><option>garbage</option>
@@ -57,10 +36,8 @@
       </select>
       <select id="filter-status" onchange="applyFilters()">
         <option value="">All Status</option>
-        <option value="open">Open</option>
-        <option value="verified">Verified</option>
-        <option value="resolved">Resolved</option>
-        <option value="escalated">Escalated</option>
+        <option value="open">Open</option><option value="verified">Verified</option>
+        <option value="resolved">Resolved</option><option value="escalated">Escalated</option>
       </select>
       <div class="search-wrap">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -69,47 +46,62 @@
     </div>
   </div>
 
-  <div class="issues-summary" id="issues-summary"></div>
+  <div id="issues-summary" class="issues-summary"></div>
   <div class="issues-grid" id="issues-grid">
     <div class="loading-state"><div class="spinner"></div><p>Fetching issues...</p></div>
   </div>
-
 </div>
 
 <div id="toast" class="toast"></div>
 
-<script>
-let allIssues  = [];
-let ngoRegistry = {};
+<!-- NEARBY NGO POPUP -->
+<div id="ngo-popup" class="ngo-popup" style="display:none;">
+  <div class="ngo-popup-inner">
+    <div class="ngo-popup-header">
+      <div>
+        <div class="ngo-popup-title">🎉 Issue Resolved! +20 pts</div>
+        <div class="ngo-popup-sub">Nearby NGOs that can help in your area:</div>
+      </div>
+      <button onclick="closeNGOPopup()" class="ngo-popup-close">×</button>
+    </div>
+    <div id="ngo-popup-list" class="ngo-popup-list"></div>
+  </div>
+</div>
+<div id="ngo-popup-overlay" class="ngo-popup-overlay" style="display:none;" onclick="closeNGOPopup()"></div>
 
-function showToast(msg, type = 'success') {
+<script>
+let allIssues = [], ngoRegistry = {};
+
+function showToast(msg, type='success') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show ' + type;
+  t.textContent = msg; t.className = 'toast show ' + type;
   setTimeout(() => t.className = 'toast', 3500);
 }
 
 function tagColor(tag) {
-  const m = { pothole:'#ff7c38',garbage:'#84cc16',streetlight:'#ffc94a',
-               water:'#22d4e0',traffic:'#ff4069',noise:'#a78bfa',
-               sewage:'#fb923c',electricity:'#facc15',tree:'#4ade80' };
+  const m = {pothole:'#ff7c38',garbage:'#84cc16',streetlight:'#ffc94a',water:'#22d4e0',
+             traffic:'#ff4069',noise:'#a78bfa',sewage:'#fb923c',electricity:'#facc15',tree:'#4ade80'};
   for (let k in m) if (tag && tag.toLowerCase().includes(k)) return m[k];
   return '#7b86a0';
 }
 
 function statusBadge(s) {
-  if (s === 'resolved')  return '<span class="badge resolved">✓ Resolved</span>';
-  if (s === 'verified')  return '<span class="badge verified">● Verified</span>';
-  if (s === 'escalated') return '<span class="badge escalated">↑ Escalated</span>';
+  if (s==='resolved')  return '<span class="badge resolved">✓ Resolved</span>';
+  if (s==='verified')  return '<span class="badge verified">● Verified</span>';
+  if (s==='escalated') return '<span class="badge escalated">↑ Escalated</span>';
   return '<span class="badge open">○ Open</span>';
 }
 
-function getNGOForTag(tag) {
-  tag = (tag || '').toLowerCase();
-  for (let key in ngoRegistry) {
-    if (key !== 'default' && tag.includes(key)) return ngoRegistry[key];
-  }
+function getNGO(tag) {
+  tag = (tag||'').toLowerCase();
+  for (let k in ngoRegistry) if (k!=='default' && tag.includes(k)) return ngoRegistry[k];
   return ngoRegistry['default'] || null;
+}
+
+async function loadAreas() {
+  const areas = await (await fetch('/areas')).json();
+  const sel = document.getElementById('filter-area');
+  areas.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; sel.appendChild(o); });
 }
 
 function applyFilters() {
@@ -117,48 +109,37 @@ function applyFilters() {
   const tag    = document.getElementById('filter-tag').value;
   const status = document.getElementById('filter-status').value;
   const search = document.getElementById('search-input').value.toLowerCase();
-
-  let filtered = allIssues.filter(i => {
+  let f = allIssues.filter(i => {
     if (area   && i.area !== area) return false;
-    if (tag    && (i.tag || '') !== tag) return false;
-    if (status && (i.status || 'open') !== status) return false;
-    if (search && !i.description.toLowerCase().includes(search)
-               && !i.area.toLowerCase().includes(search)
-               && !(i.tag || '').toLowerCase().includes(search)) return false;
+    if (tag    && (i.tag||'') !== tag) return false;
+    if (status && (i.status||'open') !== status) return false;
+    if (search && !i.description.toLowerCase().includes(search) && !i.area.toLowerCase().includes(search) && !(i.tag||'').toLowerCase().includes(search)) return false;
     return true;
   });
-
-  renderIssues(filtered);
+  renderIssues(f);
 }
 
 function renderIssues(data) {
   const grid = document.getElementById('issues-grid');
-  if (!data.length) {
-    grid.innerHTML = '<div class="empty-state"><strong>No issues match your filters.</strong><br>Try adjusting the search criteria.</div>';
-    return;
-  }
+  if (!data.length) { grid.innerHTML = '<div class="empty-state"><strong>No issues match your filters.</strong></div>'; return; }
 
   grid.innerHTML = data.slice().reverse().map(i => {
-    const ngo = getNGOForTag(i.tag);
+    const ngo = getNGO(i.tag);
     const ngoHtml = ngo ? `
       <div class="card-ngo">
-        <div class="card-ngo-info">
-          <span class="card-ngo-icon">${ngo.icon || '🏛️'}</span>
-          <span class="card-ngo-name">${ngo.name}</span>
-        </div>
+        <div class="card-ngo-info"><span class="card-ngo-icon">${ngo.icon||'🏛️'}</span><span class="card-ngo-name">${ngo.name}</span></div>
         <div class="card-ngo-actions">
-          <a href="mailto:${ngo.contact}" class="card-ngo-btn" title="Email NGO">📧 Email</a>
-          <a href="tel:${ngo.phone}" class="card-ngo-btn" title="Call NGO">📞 Call</a>
-          <button class="card-ngo-btn escalate-btn" onclick="escalate(${i.id})" title="Escalate to NGO">↑ Escalate</button>
+          <a href="mailto:${ngo.contact}" class="card-ngo-btn">📧 Email</a>
+          <a href="tel:${ngo.phone}" class="card-ngo-btn">📞 Call</a>
+          <button class="card-ngo-btn escalate-btn" onclick="escalate(${i.id})">↑ Escalate</button>
         </div>
       </div>` : '';
-
     return `
     <div class="issue-card-full">
       <div class="issue-top">
         <div class="issue-area-tag">
           <span class="area-name">${i.area}</span>
-          <span class="tag-chip" style="background:${tagColor(i.tag)}18;color:${tagColor(i.tag)}">${i.tag || 'other'}</span>
+          <span class="tag-chip" style="background:${tagColor(i.tag)}18;color:${tagColor(i.tag)}">${i.tag||'other'}</span>
         </div>
         ${statusBadge(i.status)}
       </div>
@@ -166,12 +147,11 @@ function renderIssues(data) {
       <div class="issue-footer">
         <span class="issue-reporter">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          ${i.user || 'Anonymous'}
+          ${i.user||'Anonymous'} · <span style="color:var(--text3)">${i.upvotes||0} upvotes</span>
         </span>
         <div class="issue-actions">
           <button class="action-btn upvote" onclick="upvote(${i.id})">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-            ${i.upvotes || 0}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>${i.upvotes||0}
           </button>
           <button class="action-btn verify"  onclick="verify(${i.id})">✓ Verify</button>
           <button class="action-btn resolve" onclick="resolve(${i.id})">✔ Resolve</button>
@@ -183,54 +163,66 @@ function renderIssues(data) {
 }
 
 async function load() {
-  const [issuesRes, ngoRes] = await Promise.all([
-    fetch('/issues'),
-    fetch('/ngo/all')
-  ]);
-  allIssues   = await issuesRes.json();
-  ngoRegistry = await ngoRes.json();
+  const [ir, nr] = await Promise.all([fetch('/issues'), fetch('/ngo/all')]);
+  allIssues = await ir.json(); ngoRegistry = await nr.json();
 
-  const open     = allIssues.filter(i => !i.status || i.status === 'open').length;
-  const resolved = allIssues.filter(i => i.status === 'resolved').length;
-  const verified = allIssues.filter(i => i.status === 'verified').length;
-  const escalated = allIssues.filter(i => i.status === 'escalated').length;
+  const open = allIssues.filter(i=>!i.status||i.status==='open').length;
+  const resolved = allIssues.filter(i=>i.status==='resolved').length;
+  const verified = allIssues.filter(i=>i.status==='verified').length;
+  const escalated = allIssues.filter(i=>i.status==='escalated').length;
 
   document.getElementById('issues-summary').innerHTML = `
     <div class="summary-chips">
-      <div class="summary-chip total"><strong>${allIssues.length}</strong> Total</div>
+      <div class="summary-chip"><strong>${allIssues.length}</strong> Total</div>
       <div class="summary-chip open-c"><strong>${open}</strong> Open</div>
       <div class="summary-chip verified-c"><strong>${verified}</strong> Verified</div>
       <div class="summary-chip resolved-c"><strong>${resolved}</strong> Resolved</div>
-      ${escalated ? `<div class="summary-chip"><strong style="color:var(--orange)">${escalated}</strong> Escalated</div>` : ''}
-    </div>
-  `;
+      ${escalated?`<div class="summary-chip"><strong style="color:var(--orange)">${escalated}</strong> Escalated</div>`:''}
+    </div>`;
 
   renderIssues(allIssues);
 }
 
-async function upvote(id) {
-  await fetch('/upvote/' + id, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({user:'anonymous'}) });
-  showToast('⬆ Upvoted · +2 pts');
-  load();
-}
-async function verify(id) {
-  await fetch('/verify/' + id, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({user:'anonymous'}) });
-  showToast('✓ Verified · +5 pts');
-  load();
-}
+async function upvote(id) { await fetch('/upvote/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}); showToast('⬆ +2 pts'); load(); }
+async function verify(id)  { await fetch('/verify/'+id, {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}); showToast('✓ Verified · +5 pts'); load(); }
 async function resolve(id) {
-  await fetch('/resolve/' + id, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({user:'anonymous'}) });
-  showToast('✔ Resolved · +20 pts 🎉');
+  const res = await fetch('/resolve/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+  const data = await res.json();
   load();
+  if (data.nearby_ngos && data.nearby_ngos.length) { showNGOPopup(data.nearby_ngos); }
+  else { showToast('✔ Resolved · +20 pts 🎉'); }
+}
+function showNGOPopup(ngos) {
+  document.getElementById('ngo-popup-list').innerHTML = ngos.map(ngo => `
+    <div class="ngo-popup-card">
+      <div class="ngo-popup-card-left">
+        <span style="font-size:22px">${ngo.icon||'🏛️'}</span>
+        <div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text)">${ngo.name}</div>
+          <div style="font-size:11px;color:var(--text2)">${ngo.focus}</div>
+          <div style="font-size:10px;color:var(--text3)">📍 ${ngo.address} · <span style="color:var(--accent)">${ngo.distance_km} km away</span></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <a href="mailto:${ngo.contact}" style="font-size:11px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.25);padding:5px 10px;border-radius:6px;background:rgba(79,126,248,0.07);">📧</a>
+        <a href="tel:${ngo.phone}" style="font-size:11px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.25);padding:5px 10px;border-radius:6px;background:rgba(31,209,138,0.07);">📞</a>
+      </div>
+    </div>`).join('');
+  document.getElementById('ngo-popup').style.display = 'flex';
+  document.getElementById('ngo-popup-overlay').style.display = 'block';
+}
+function closeNGOPopup() {
+  document.getElementById('ngo-popup').style.display = 'none';
+  document.getElementById('ngo-popup-overlay').style.display = 'none';
+  showToast('✔ Issue resolved · +20 pts 🎉');
 }
 async function escalate(id) {
-  const res  = await fetch('/ngo/escalate/' + id, { method: 'POST', headers: {'Content-Type':'application/json'} });
-  const data = await res.json();
-  showToast(`↑ Escalated to ${data.ngo?.name || 'NGO'}`, 'ngo');
-  load();
+  const res = await fetch('/ngo/escalate/'+id,{method:'POST',headers:{'Content-Type':'application/json'}});
+  const d = await res.json();
+  showToast(`↑ Escalated to ${d.ngo?.name||'NGO'}`, 'ngo'); load();
 }
 
-load();
+loadAreas(); load();
 </script>
 </body>
 </html>
