@@ -66,6 +66,47 @@
       Report Issue
     </button>
   </div>
+  <div class="report-bar-row2">
+    <div class="input-group">
+      <label>Landmark / Nearby</label>
+      <input id="landmark" type="text" placeholder="e.g. near Metro Gate 3, opposite D-Mart" style="width:220px" autocomplete="off">
+    </div>
+    <div class="input-group">
+      <label>Contact (optional)</label>
+      <input id="contact" type="text" placeholder="Phone or email" style="width:180px" autocomplete="off">
+    </div>
+    <div class="input-group">
+      <label>Severity</label>
+      <div class="severity-btns">
+        <button class="severity-btn" id="sev-low"    onclick="setSeverity('low')">🟢 Low</button>
+        <button class="severity-btn sel-medium" id="sev-medium" onclick="setSeverity('medium')">🟠 Medium</button>
+        <button class="severity-btn" id="sev-high"   onclick="setSeverity('high')">🔴 High</button>
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Photo (optional)</label>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <label class="img-upload-btn" id="img-label" title="Attach a photo">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span id="img-label-text">Add Photo</span>
+          <input id="img-input" type="file" accept="image/*" style="display:none" onchange="handleImageSelect(this)">
+        </label>
+        <div id="img-preview-wrap" style="display:none;position:relative;">
+          <img id="img-preview" onclick="openLightboxDirect(this.src,'Preview')" style="width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid var(--border2);cursor:pointer;">
+          <button onclick="clearImage()" style="position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:var(--red);border:none;color:white;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="lightbox" style="display:none;" onclick="closeLightbox(event)">
+  <div class="lightbox-box">
+    <button class="lightbox-close" onclick="closeLightbox()">×</button>
+    <img id="lightbox-img" src="" alt="Issue photo">
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+  </div>
 </div>
 
 <!-- NGO ALERT BANNER -->
@@ -87,7 +128,7 @@
 <!-- TOAST -->
 <div id="toast" class="toast"></div>
 
-<!-- NEARBY NGO POPUP (shown after resolve) -->
+<!-- NEARBY NGO POPUP -->
 <div id="ngo-popup" class="ngo-popup" style="display:none;">
   <div class="ngo-popup-inner">
     <div class="ngo-popup-header">
@@ -142,15 +183,20 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
 let map, mapLayers = [], userLat = null, userLng = null;
 let currentUser = '';
+// Image cache: maps issue id -> base64 src (avoids quote escaping issues)
+const _imgCache = {};
 
+// ── MAP INIT ──────────────────────────────────────────────────────────────────
 map = L.map('map', { zoomControl: false }).setView([28.6139, 77.2090], 11);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   attribution: '© OpenStreetMap © CARTO', maxZoom: 19
 }).addTo(map);
 
+// ── LOAD AREAS ────────────────────────────────────────────────────────────────
 async function loadAreas() {
   const areas = await (await fetch('/areas')).json();
   const sel = document.getElementById('area');
@@ -158,15 +204,21 @@ async function loadAreas() {
     areas.map(a => `<option value="${a}">${a}</option>`).join('');
 }
 
+// ── AUTO DETECT LOCATION ──────────────────────────────────────────────────────
 function autoDetectLocation() {
   const btn = document.getElementById('loc-btn');
   btn.style.opacity = '0.5';
   btn.innerHTML = '<div class="spinner" style="width:12px;height:12px;border-width:2px;"></div>';
+
   if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); return; }
+
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
-      userLat = pos.coords.latitude; userLng = pos.coords.longitude;
-      L.circleMarker([userLat, userLng], { radius: 8, color: '#4f7ef8', fillColor: '#4f7ef8', fillOpacity: 1, weight: 3 }).addTo(map).bindPopup('<strong style="color:#eef0f6">📍 Your Location</strong>').openPopup();
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      L.circleMarker([userLat, userLng], {
+        radius: 8, color: '#4f7ef8', fillColor: '#4f7ef8', fillOpacity: 1, weight: 3
+      }).addTo(map).bindPopup('<strong style="color:#eef0f6">📍 Your Location</strong>').openPopup();
       map.setView([userLat, userLng], 13);
       const nearestArea = await findNearestArea(userLat, userLng);
       if (nearestArea) { document.getElementById('area').value = nearestArea; showToast(`📍 Location detected: ${nearestArea}`); }
@@ -203,6 +255,7 @@ async function findNearestArea(lat, lng) {
   return best;
 }
 
+// ── UTILS ─────────────────────────────────────────────────────────────────────
 function switchTab(tab, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -232,38 +285,124 @@ function statusBadge(s) {
   return '<span class="badge open">○ Open</span>';
 }
 
+// ── SEVERITY ──────────────────────────────────────────────────────────────────
+let selectedSeverity = 'medium';
+function setSeverity(level) {
+  selectedSeverity = level;
+  ['low','medium','high'].forEach(l => {
+    const b = document.getElementById('sev-' + l);
+    if (b) b.className = 'severity-btn' + (l === level ? ' sel-' + l : '');
+  });
+}
+
+// ── IMAGE UPLOAD ──────────────────────────────────────────────────────────────
+let selectedImageData = null;
+
+function handleImageSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('Image too large (max 5MB)', 'error'); input.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    selectedImageData = e.target.result;
+    document.getElementById('img-preview').src = selectedImageData;
+    document.getElementById('img-preview-wrap').style.display = 'block';
+    document.getElementById('img-label-text').textContent = '✓ Photo added';
+    document.getElementById('img-label').classList.add('has-img');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage() {
+  selectedImageData = null;
+  document.getElementById('img-input').value = '';
+  document.getElementById('img-preview-wrap').style.display = 'none';
+  document.getElementById('img-label-text').textContent = 'Add Photo';
+  document.getElementById('img-label').classList.remove('has-img');
+}
+
+// ── LIGHTBOX ──────────────────────────────────────────────────────────────────
+// Safe: always pass src directly — never embedded in onclick attribute strings
+function openLightboxById(issueId, caption) {
+  const src = _imgCache[issueId];
+  if (!src) return;
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-caption').textContent = caption || '';
+  document.getElementById('lightbox').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function openLightboxDirect(src, caption) {
+  if (!src) return;
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-caption').textContent = caption || '';
+  document.getElementById('lightbox').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox(e) {
+  if (e && e.target !== document.getElementById('lightbox') && !e.target.classList.contains('lightbox-close')) return;
+  document.getElementById('lightbox').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { document.getElementById('lightbox').style.display = 'none'; document.body.style.overflow = ''; }
+});
+
+// ── REPORT ────────────────────────────────────────────────────────────────────
 async function submitIssue() {
-  const user = document.getElementById('user').value.trim() || 'Anonymous';
-  const area = document.getElementById('area').value;
-  const desc = document.getElementById('desc').value.trim();
+  const user     = document.getElementById('user').value.trim() || 'Anonymous';
+  const area     = document.getElementById('area').value;
+  const desc     = document.getElementById('desc').value.trim();
+  const landmark = document.getElementById('landmark').value.trim();
+  const contact  = document.getElementById('contact').value.trim();
   if (!area || !desc) { showToast('Fill in area and description', 'error'); return; }
   if (desc.length < 10) { showToast('Description too short!', 'error'); return; }
+
   const btn = document.getElementById('report-btn');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner" style="width:15px;height:15px;border-width:2px;"></div> Submitting...';
+
   try {
     const res = await fetch('/report', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ user, area, description: desc, lat: userLat, lng: userLng })
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        user, area, description: desc,
+        lat: userLat, lng: userLng,
+        image: selectedImageData,
+        severity: selectedSeverity,
+        landmark, contact
+      })
     });
     const data = await res.json();
     if (data.status === 'ok') {
       showToast(`✓ Reported as "${data.tag}" · +10 pts`);
       document.getElementById('desc').value = '';
+      document.getElementById('landmark').value = '';
+      document.getElementById('contact').value = '';
+      clearImage();
+      setSeverity('medium');
       currentUser = user;
       document.getElementById('nav-user-display').textContent = user;
       if (data.ngo) {
         const ngo = data.ngo;
-        document.getElementById('ngo-alert-icon').textContent = ngo.icon || '🏛️';
-        document.getElementById('ngo-alert-name').textContent = ngo.name;
+        document.getElementById('ngo-alert-icon').textContent  = ngo.icon || '🏛️';
+        document.getElementById('ngo-alert-name').textContent  = ngo.name;
         document.getElementById('ngo-alert-focus').textContent = '— ' + ngo.focus;
         document.getElementById('ngo-alert-email').href = 'mailto:' + ngo.contact;
         document.getElementById('ngo-alert-phone').href = 'tel:' + ngo.phone;
         document.getElementById('ngo-alert').style.display = 'block';
       }
-      updatePointsBadge(user); loadAll();
-    } else { showToast(data.error || 'Error', 'error'); }
-  } catch(e) { showToast('Server error. Try again.', 'error'); }
+      updatePointsBadge(user);
+      loadAll();
+    } else {
+      showToast(data.error || 'Error', 'error');
+    }
+  } catch(e) {
+    showToast('Server error. Try again.', 'error');
+  }
+
   btn.disabled = false;
   btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Report Issue';
 }
@@ -275,23 +414,39 @@ async function updatePointsBadge(user) {
   document.getElementById('nav-points').style.display = 'flex';
 }
 
+// ── LOAD ISSUES ───────────────────────────────────────────────────────────────
 async function loadIssues() {
   const data = await (await fetch('/issues')).json();
   document.getElementById('stat-total').textContent    = data.length;
-  document.getElementById('stat-open').textContent     = data.filter(i=>!i.status||i.status==='open').length;
-  document.getElementById('stat-resolved').textContent = data.filter(i=>i.status==='resolved').length;
+  document.getElementById('stat-open').textContent     = data.filter(i => !i.status || i.status === 'open').length;
+  document.getElementById('stat-resolved').textContent = data.filter(i => i.status === 'resolved').length;
+
+  // Populate image cache
+  data.forEach(i => { if (i.image) _imgCache[i.id] = i.image; });
+
   const list = document.getElementById('issues-list');
-  if (!data.length) { list.innerHTML = '<div class="empty-state">No issues yet.<br><strong>Be the first to report!</strong></div>'; return; }
-  list.innerHTML = data.slice().reverse().slice(0,30).map(i => `
+  if (!data.length) {
+    list.innerHTML = '<div class="empty-state">No issues yet.<br><strong>Be the first to report!</strong></div>';
+    return;
+  }
+
+  list.innerHTML = data.slice().reverse().slice(0, 30).map(i => `
     <div class="issue-card">
       <div class="issue-top">
         <div class="issue-area-tag">
           <span class="area-name">${i.area}</span>
           <span class="tag-chip" style="background:${tagColor(i.tag)}18;color:${tagColor(i.tag)}">${i.tag||'other'}</span>
+          ${i.severity ? `<span class="sev-badge ${i.severity}">${i.severity}</span>` : ''}
         </div>
         ${statusBadge(i.status)}
       </div>
       <p class="issue-desc">${i.description}</p>
+      ${i.landmark ? `<div style="font-size:11px;color:var(--text3);margin-bottom:5px;">📍 ${i.landmark}</div>` : ''}
+      ${i.image ? `
+        <div class="issue-img-thumb" onclick="openLightboxById(${i.id}, '${i.area} — ${i.tag||''}')">
+          <img src="${i.image}" alt="Issue photo">
+          <span class="issue-img-thumb-label">🔍 View</span>
+        </div>` : ''}
       <div class="issue-footer">
         <span class="issue-reporter">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -310,19 +465,30 @@ async function loadIssues() {
     </div>`).join('');
 }
 
+// ── MAP ───────────────────────────────────────────────────────────────────────
 async function loadMap() {
   const data = await (await fetch('/map-data')).json();
-  mapLayers.forEach(l => map.removeLayer(l)); mapLayers = [];
+  mapLayers.forEach(l => map.removeLayer(l));
+  mapLayers = [];
   document.getElementById('stat-areas').textContent = data.length;
+
   data.forEach(a => {
     const cols = {high:'#ff4069', medium:'#ff9c38', low:'#1fd18a'};
     const c = cols[a.heat] || '#1fd18a';
     const radius = 1800 + (a.count * 200);
-    const circle = L.circle([a.lat, a.lng], { radius, color: c, fillColor: c, fillOpacity: 0.15, weight: 1.5, opacity: 0.7 }).addTo(map);
+
+    const circle = L.circle([a.lat, a.lng], {
+      radius, color: c, fillColor: c, fillOpacity: 0.15, weight: 1.5, opacity: 0.7
+    }).addTo(map);
+
     if (a.heat === 'high') {
-      const outer = L.circle([a.lat, a.lng], { radius: radius + 500, color: c, fillColor: 'transparent', fillOpacity: 0, weight: 1, opacity: 0.3, dashArray: '6 4' }).addTo(map);
+      const outer = L.circle([a.lat, a.lng], {
+        radius: radius + 500, color: c, fillColor: 'transparent',
+        fillOpacity: 0, weight: 1, opacity: 0.3, dashArray: '6 4'
+      }).addTo(map);
       mapLayers.push(outer);
     }
+
     const heatLabel = {high:'🔴 High Severity', medium:'🟠 Medium Severity', low:'🟢 Low Severity'};
     circle.bindPopup(`
       <div style="font-family:'Cabinet Grotesk',sans-serif;min-width:160px">
@@ -330,15 +496,20 @@ async function loadMap() {
         <span style="color:${c};font-weight:700;font-size:13px">${a.count} issue${a.count!==1?'s':''}</span><br>
         <span style="color:#7b86a0;font-size:12px">${heatLabel[a.heat]}</span>
       </div>`);
-    const dot = L.circleMarker([a.lat, a.lng], { radius: 5, color: c, fillColor: c, fillOpacity: 1, weight: 0 }).addTo(map);
+
+    const dot = L.circleMarker([a.lat, a.lng], {
+      radius: 5, color: c, fillColor: c, fillOpacity: 1, weight: 0
+    }).addTo(map);
+
     mapLayers.push(circle, dot);
   });
 }
 
+// ── NGO LIST ──────────────────────────────────────────────────────────────────
 async function loadNGOs() {
   const data = await (await fetch('/ngo/all')).json();
   const list = document.getElementById('ngo-list');
-  const entries = Object.entries(data).filter(([k])=>k!=='default');
+  const entries = Object.entries(data).filter(([k]) => k !== 'default');
   list.innerHTML = entries.map(([tag, ngo]) => `
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px 15px;">
       <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
@@ -357,12 +528,13 @@ async function loadNGOs() {
     </div>`).join('');
 }
 
+// ── LEADERBOARD MINI ──────────────────────────────────────────────────────────
 async function loadLeaderboardMini() {
   const data = await (await fetch('/leaderboard')).json();
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('leaderboard-mini').innerHTML = !data.length
     ? '<div class="empty-state">No contributors yet.</div>'
-    : data.map((u,i)=>`
+    : data.map((u,i) => `
         <div class="mini-rank">
           <span class="rank-icon">${medals[i]||'#'+(i+1)}</span>
           <span class="rank-name">${u.name}</span>
@@ -370,16 +542,26 @@ async function loadLeaderboardMini() {
         </div>`).join('');
 }
 
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
 const getUser = () => document.getElementById('user').value.trim() || 'anonymous';
 
 async function upvote(id) {
   await fetch('/upvote/'+id, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:getUser()})});
   showToast('⬆ Upvoted · +2 pts'); loadAll(); updatePointsBadge(getUser());
 }
-async function verify(id) {
-  await fetch('/verify/'+id, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:getUser()})});
-  showToast('✓ Verified · +5 pts'); loadAll(); updatePointsBadge(getUser());
+
+function verify(id) {
+  const pwd = prompt('🔒 Admin password required to verify issues:');
+  if (pwd === null) return;
+  fetch('/verify/'+id, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({user: getUser(), admin_password: pwd})
+  }).then(r => r.json()).then(data => {
+    if (data.error) { showToast(data.error, 'error'); }
+    else { showToast('✓ Verified · +5 pts'); loadAll(); updatePointsBadge(getUser()); }
+  });
 }
+
 async function resolveIssue(id) {
   const res  = await fetch('/resolve/'+id, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:getUser()})});
   const data = await res.json();
@@ -387,15 +569,16 @@ async function resolveIssue(id) {
   if (data.nearby_ngos && data.nearby_ngos.length) { showNGOPopup(data.nearby_ngos); }
   else { showToast('✔ Resolved · +20 pts 🎉'); }
 }
+
 async function escalate(id) {
   const res  = await fetch('/ngo/escalate/'+id, {method:'POST',headers:{'Content-Type':'application/json'}});
   const data = await res.json();
   showToast(`↑ Escalated to ${data.ngo?.name||'NGO'}`, 'ngo'); loadAll();
 }
 
+// ── NGO POPUP ────────────────────────────────────────────────────────────────
 function showNGOPopup(ngos) {
-  const list = document.getElementById('ngo-popup-list');
-  list.innerHTML = ngos.map(ngo => `
+  document.getElementById('ngo-popup-list').innerHTML = ngos.map(ngo => `
     <div class="ngo-popup-card">
       <div class="ngo-popup-card-left">
         <span style="font-size:22px">${ngo.icon||'🏛️'}</span>
@@ -423,8 +606,9 @@ function closeNGOPopup() {
 async function loadAll() { loadIssues(); loadMap(); }
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadAreas(); loadAll();
-  document.getElementById('desc').addEventListener('keydown', e => { if(e.key==='Enter') submitIssue(); });
+  loadAreas();
+  loadAll();
+  document.getElementById('desc').addEventListener('keydown', e => { if (e.key === 'Enter') submitIssue(); });
   document.getElementById('user').addEventListener('blur', e => {
     if (e.target.value.trim()) updatePointsBadge(e.target.value.trim());
   });
