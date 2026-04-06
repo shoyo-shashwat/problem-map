@@ -52,13 +52,13 @@ async function load() {
     return;
   }
   const top3 = data.slice(0, 3);
-  const order = top3.length >= 2 ? [top3[1],top3[0],top3[2]].filter(Boolean) : top3;
+  const order = top3.length >= 2 ? [top3[1], top3[0], top3[2]].filter(Boolean) : top3;
   const classes = top3.length >= 2 ? ['second','first','third'] : ['first'];
-  const emoji = {first:'🥇',second:'🥈',third:'🥉'};
-  const mbottom = {first:'0',second:'28px',third:'48px'};
+  const emoji = {first:'🥇', second:'🥈', third:'🥉'};
+  const mbottom = {first:'0', second:'28px', third:'48px'};
 
-  document.getElementById('podium-row').innerHTML = order.map((u,i) => {
-    const cls = classes[i]||'first';
+  document.getElementById('podium-row').innerHTML = order.map((u, i) => {
+    const cls = classes[i] || 'first';
     return `<div class="podium-card ${cls}" style="margin-bottom:${mbottom[cls]||'0'}">
       <div class="podium-avatar">${u.name.charAt(0).toUpperCase()}</div>
       <div class="podium-name">${u.name}</div>
@@ -67,13 +67,13 @@ async function load() {
     </div>`;
   }).join('');
 
-  if (data.length <= 3) { document.getElementById('leaderboard-table').innerHTML=''; return; }
+  if (data.length <= 3) { document.getElementById('leaderboard-table').innerHTML = ''; return; }
 
   document.getElementById('leaderboard-table').innerHTML = `
     <div class="table-header"><span>Rank</span><span>Contributor</span><span>Points</span><span>Level</span></div>
-    ${data.slice(3).map((u,i) => {
-      const rank = i+4;
-      const lvl = u.points>=500?'🔥 Champion':u.points>=200?'⚡ Active':u.points>=50?'🌱 Rising':'👤 Newcomer';
+    ${data.slice(3).map((u, i) => {
+      const rank = i + 4;
+      const lvl = u.points >= 500 ? '🔥 Champion' : u.points >= 200 ? '⚡ Active' : u.points >= 50 ? '🌱 Rising' : '👤 Newcomer';
       return `<div class="table-row">
         <span class="table-rank">#${rank}</span>
         <span class="table-name"><div class="table-avatar">${u.name.charAt(0).toUpperCase()}</div>${u.name}</span>

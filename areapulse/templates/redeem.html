@@ -8,40 +8,83 @@
 <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=cabinet-grotesk@300,400,500,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <style>
-.redeem-hero { text-align:center; padding: 48px 0 36px; }
+.redeem-hero { text-align:center; padding:48px 0 36px; }
 .user-check { display:flex; gap:10px; align-items:flex-end; justify-content:center; margin-bottom:36px; flex-wrap:wrap; }
-.user-check input { background:var(--bg3); border:1px solid var(--border2); color:var(--text); font-family:var(--font-body); font-size:14px; padding:10px 16px; border-radius:var(--radius-sm); outline:none; width:240px; height:42px; }
+.user-check input {
+  background:var(--bg3); border:1px solid var(--border2); color:var(--text);
+  font-family:var(--font-body); font-size:14px; padding:10px 16px;
+  border-radius:var(--radius-sm); outline:none; width:240px; height:42px;
+}
 .user-check input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(79,126,248,0.1); }
-.check-btn { height:42px; padding:0 20px; background:var(--bg3); border:1px solid var(--border2); color:var(--text2); font-family:var(--font-body); font-size:13px; font-weight:600; border-radius:var(--radius-sm); cursor:pointer; transition:all 0.2s; }
+.check-btn {
+  height:42px; padding:0 20px; background:var(--bg3); border:1px solid var(--border2);
+  color:var(--text2); font-family:var(--font-body); font-size:13px; font-weight:600;
+  border-radius:var(--radius-sm); cursor:pointer; transition:all 0.2s;
+}
 .check-btn:hover { border-color:var(--accent); color:var(--accent); }
-.points-display { display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,rgba(79,126,248,0.12),rgba(124,92,252,0.08)); border:1px solid rgba(79,126,248,0.25); border-radius:12px; padding:12px 24px; margin-bottom:36px; font-family:var(--font-display); }
-.points-display .big-pts { font-size:32px; font-weight:700; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.points-display {
+  display:inline-flex; align-items:center; gap:8px;
+  background:linear-gradient(135deg,rgba(79,126,248,0.12),rgba(124,92,252,0.08));
+  border:1px solid rgba(79,126,248,0.25); border-radius:12px; padding:12px 24px;
+  margin-bottom:36px; font-family:var(--font-display);
+}
+.points-display .big-pts {
+  font-size:32px; font-weight:700;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
 .points-display .pts-sub { font-size:13px; color:var(--text2); }
-.rewards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:14px; }
-.reward-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:20px; transition:all 0.2s; position:relative; overflow:hidden; cursor:pointer; }
+.rewards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+.reward-card {
+  background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius);
+  padding:20px; transition:all 0.2s; position:relative; overflow:hidden; cursor:pointer;
+}
 .reward-card:hover { border-color:var(--border2); transform:translateY(-3px); box-shadow:0 12px 36px rgba(0,0,0,0.4); }
 .reward-card.can-afford { border-color:rgba(79,126,248,0.25); }
 .reward-card.can-afford:hover { border-color:var(--accent); }
 .reward-card.locked { opacity:0.5; cursor:not-allowed; }
 .reward-card-top { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
-.reward-icon { font-size:28px; }
-.reward-cat { font-size:10px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:2px; }
+.reward-icon  { font-size:28px; }
+.reward-cat   { font-size:10px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:2px; }
 .reward-title { font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--text); }
-.reward-cost { display:flex; align-items:center; justify-content:space-between; }
-.reward-pts { font-family:var(--font-display); font-weight:700; font-size:18px; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.redeem-btn { font-family:var(--font-body); font-size:12px; font-weight:700; padding:7px 16px; border-radius:7px; border:none; cursor:pointer; transition:all 0.2s; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; }
+.reward-cost  { display:flex; align-items:center; justify-content:space-between; }
+.reward-pts   {
+  font-family:var(--font-display); font-weight:700; font-size:18px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.redeem-btn {
+  font-family:var(--font-body); font-size:12px; font-weight:700;
+  padding:7px 16px; border-radius:7px; border:none; cursor:pointer; transition:all 0.2s;
+  background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white;
+}
 .redeem-btn:hover { filter:brightness(1.15); transform:translateY(-1px); }
 .redeem-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; filter:none; background:var(--bg4); color:var(--text3); border:1px solid var(--border); }
-.success-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; display:flex; align-items:center; justify-content:center; }
-.success-box { background:var(--bg2); border:1px solid var(--border2); border-radius:20px; padding:40px; text-align:center; max-width:400px; animation:pop 0.4s cubic-bezier(0.34,1.56,0.64,1); }
-@keyframes pop { from { transform:scale(0.8); opacity:0; } to { transform:scale(1); opacity:1; } }
-.success-icon { font-size:56px; margin-bottom:16px; }
+.success-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000;
+  display:flex; align-items:center; justify-content:center;
+}
+.success-box {
+  background:var(--bg2); border:1px solid var(--border2); border-radius:20px;
+  padding:40px; text-align:center; max-width:400px;
+  animation:pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes pop { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+.success-icon  { font-size:56px; margin-bottom:16px; }
 .success-title { font-family:var(--font-display); font-weight:700; font-size:22px; color:var(--text); margin-bottom:8px; }
-.success-sub { font-size:14px; color:var(--text2); margin-bottom:24px; }
-.success-pts { font-family:var(--font-display); font-weight:700; font-size:16px; color:var(--green); margin-bottom:24px; }
-.success-close { background:var(--accent); color:white; border:none; font-family:var(--font-display); font-size:14px; font-weight:700; padding:12px 32px; border-radius:10px; cursor:pointer; }
-.filter-tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
-.filter-tab { font-family:var(--font-body); font-size:13px; font-weight:600; padding:7px 16px; border-radius:20px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); cursor:pointer; transition:all 0.2s; }
+.success-sub   { font-size:14px; color:var(--text2); margin-bottom:24px; }
+.success-pts   { font-family:var(--font-display); font-weight:700; font-size:16px; color:var(--green); margin-bottom:24px; }
+.success-close {
+  background:var(--accent); color:white; border:none;
+  font-family:var(--font-display); font-size:14px; font-weight:700;
+  padding:12px 32px; border-radius:10px; cursor:pointer;
+}
+.filter-tabs  { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+.filter-tab   {
+  font-family:var(--font-body); font-size:13px; font-weight:600;
+  padding:7px 16px; border-radius:20px; border:1px solid var(--border2);
+  background:var(--bg3); color:var(--text2); cursor:pointer; transition:all 0.2s;
+}
 .filter-tab:hover { color:var(--text); }
 .filter-tab.active { background:rgba(79,126,248,0.1); border-color:rgba(79,126,248,0.3); color:var(--accent); }
 </style>
@@ -103,8 +146,8 @@
   <div class="success-box">
     <div class="success-icon">🎉</div>
     <div class="success-title" id="s-title">Reward Redeemed!</div>
-    <div class="success-sub" id="s-sub">Your reward has been processed.</div>
-    <div class="success-pts" id="s-pts"></div>
+    <div class="success-sub"   id="s-sub">Your reward has been processed.</div>
+    <div class="success-pts"   id="s-pts"></div>
     <button class="success-close" onclick="document.getElementById('success-overlay').style.display='none'">Awesome!</button>
   </div>
 </div>
@@ -115,15 +158,16 @@
 let allRewards = [], userPoints = 0, currentUser = '', activeCat = '';
 
 function showToast(msg, type='success') {
-  const t = document.getElementById('toast'); t.textContent = msg;
-  t.className = 'toast show '+type; setTimeout(()=>t.className='toast',3500);
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3500);
 }
 
 async function checkPoints() {
   const name = document.getElementById('redeem-user').value.trim();
   if (!name) { showToast('Enter your name first', 'error'); return; }
   currentUser = name;
-  const d = await (await fetch('/user/points?name='+encodeURIComponent(name))).json();
+  const d = await (await fetch('/user/points?name=' + encodeURIComponent(name))).json();
   userPoints = d.points || 0;
   document.getElementById('user-pts-val').textContent = userPoints;
   document.getElementById('points-display').style.display = 'block';
@@ -135,19 +179,19 @@ async function checkPoints() {
 
 function filterCat(cat, el) {
   activeCat = cat;
-  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   renderRewards(allRewards);
 }
 
 function renderRewards(rewards) {
   const grid = document.getElementById('rewards-grid');
-  let filtered = activeCat ? rewards.filter(r=>r.category===activeCat) : rewards;
+  const filtered = activeCat ? rewards.filter(r => r.category === activeCat) : rewards;
 
   grid.innerHTML = filtered.map(r => {
     const canAfford = userPoints >= r.points;
     return `
-    <div class="reward-card ${canAfford?'can-afford':'locked'}">
+    <div class="reward-card ${canAfford ? 'can-afford' : 'locked'}">
       <div class="reward-card-top">
         <span class="reward-icon">${r.icon}</span>
         <div>
@@ -173,16 +217,16 @@ async function redeem(rewardId) {
     return;
   }
   const res = await fetch('/redeem', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({user:currentUser, reward_id:rewardId})
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({user: currentUser, reward_id: rewardId})
   });
   const data = await res.json();
   if (data.status === 'redeemed') {
     userPoints = data.remaining_points;
     document.getElementById('user-pts-val').textContent = userPoints;
     document.getElementById('s-title').textContent = data.reward.title + ' Redeemed!';
-    document.getElementById('s-sub').textContent = `Successfully claimed for ${data.reward.points} points.`;
-    document.getElementById('s-pts').textContent = `Remaining balance: ${data.remaining_points} pts`;
+    document.getElementById('s-sub').textContent   = `Successfully claimed for ${data.reward.points} points.`;
+    document.getElementById('s-pts').textContent   = `Remaining balance: ${data.remaining_points} pts`;
     document.getElementById('success-overlay').style.display = 'flex';
     renderRewards(allRewards);
   } else {
@@ -195,7 +239,7 @@ async function load() {
   renderRewards(allRewards);
 }
 
-document.getElementById('redeem-user').addEventListener('keydown', e => { if(e.key==='Enter') checkPoints(); });
+document.getElementById('redeem-user').addEventListener('keydown', e => { if (e.key === 'Enter') checkPoints(); });
 load();
 </script>
 </body>

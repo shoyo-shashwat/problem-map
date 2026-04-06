@@ -69,8 +69,19 @@
 </div>
 <div id="ngo-popup-overlay" class="ngo-popup-overlay" style="display:none;" onclick="closeNGOPopup()"></div>
 
+<!-- LIGHTBOX -->
+<div id="lightbox" class="lightbox" style="display:none;" onclick="closeLightbox(event)">
+  <div class="lightbox-box">
+    <button class="lightbox-close" onclick="closeLightbox()">×</button>
+    <img id="lightbox-img" src="" alt="Issue photo">
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+  </div>
+</div>
+
 <script>
 let allIssues = [], ngoRegistry = {};
+// Safe image cache — keyed by issue id, avoids quote-escaping in onclick
+const _imgCache = {};
 
 function showToast(msg, type='success') {
   const t = document.getElementById('toast');
@@ -113,7 +124,9 @@ function applyFilters() {
     if (area   && i.area !== area) return false;
     if (tag    && (i.tag||'') !== tag) return false;
     if (status && (i.status||'open') !== status) return false;
-    if (search && !i.description.toLowerCase().includes(search) && !i.area.toLowerCase().includes(search) && !(i.tag||'').toLowerCase().includes(search)) return false;
+    if (search && !i.description.toLowerCase().includes(search)
+               && !i.area.toLowerCase().includes(search)
+               && !(i.tag||'').toLowerCase().includes(search)) return false;
     return true;
   });
   renderIssues(f);
@@ -134,16 +147,24 @@ function renderIssues(data) {
           <button class="card-ngo-btn escalate-btn" onclick="escalate(${i.id})">↑ Escalate</button>
         </div>
       </div>` : '';
+
     return `
     <div class="issue-card-full">
       <div class="issue-top">
         <div class="issue-area-tag">
           <span class="area-name">${i.area}</span>
           <span class="tag-chip" style="background:${tagColor(i.tag)}18;color:${tagColor(i.tag)}">${i.tag||'other'}</span>
+          ${i.severity ? `<span class="sev-badge ${i.severity}">${i.severity}</span>` : ''}
         </div>
         ${statusBadge(i.status)}
       </div>
       <p class="issue-desc">${i.description}</p>
+      ${i.landmark ? `<div style="font-size:11px;color:var(--text3);margin-bottom:6px;">📍 ${i.landmark}</div>` : ''}
+      ${i.image ? `
+        <div class="issue-img-thumb" onclick="openLightboxById(${i.id}, '${i.area} — ${i.tag||''}')">
+          <img src="${i.image}" alt="Issue photo">
+          <span class="issue-img-thumb-label">🔍 View photo</span>
+        </div>` : ''}
       <div class="issue-footer">
         <span class="issue-reporter">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -164,12 +185,16 @@ function renderIssues(data) {
 
 async function load() {
   const [ir, nr] = await Promise.all([fetch('/issues'), fetch('/ngo/all')]);
-  allIssues = await ir.json(); ngoRegistry = await nr.json();
+  allIssues = await ir.json();
+  ngoRegistry = await nr.json();
 
-  const open = allIssues.filter(i=>!i.status||i.status==='open').length;
-  const resolved = allIssues.filter(i=>i.status==='resolved').length;
-  const verified = allIssues.filter(i=>i.status==='verified').length;
-  const escalated = allIssues.filter(i=>i.status==='escalated').length;
+  // Populate image cache safely
+  allIssues.forEach(i => { if (i.image) _imgCache[i.id] = i.image; });
+
+  const open      = allIssues.filter(i => !i.status || i.status === 'open').length;
+  const resolved  = allIssues.filter(i => i.status === 'resolved').length;
+  const verified  = allIssues.filter(i => i.status === 'verified').length;
+  const escalated = allIssues.filter(i => i.status === 'escalated').length;
 
   document.getElementById('issues-summary').innerHTML = `
     <div class="summary-chips">
@@ -177,21 +202,43 @@ async function load() {
       <div class="summary-chip open-c"><strong>${open}</strong> Open</div>
       <div class="summary-chip verified-c"><strong>${verified}</strong> Verified</div>
       <div class="summary-chip resolved-c"><strong>${resolved}</strong> Resolved</div>
-      ${escalated?`<div class="summary-chip"><strong style="color:var(--orange)">${escalated}</strong> Escalated</div>`:''}
+      ${escalated ? `<div class="summary-chip"><strong style="color:var(--orange)">${escalated}</strong> Escalated</div>` : ''}
     </div>`;
 
   renderIssues(allIssues);
 }
 
-async function upvote(id) { await fetch('/upvote/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}); showToast('⬆ +2 pts'); load(); }
-async function verify(id)  { await fetch('/verify/'+id, {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}); showToast('✓ Verified · +5 pts'); load(); }
+async function upvote(id) {
+  await fetch('/upvote/'+id, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+  showToast('⬆ +2 pts'); load();
+}
+
+function verify(id) {
+  const pwd = prompt('🔒 Admin password required to verify issues:');
+  if (pwd === null) return;
+  fetch('/verify/'+id, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({admin_password: pwd})
+  }).then(r => r.json()).then(data => {
+    if (data.error) { showToast(data.error, 'error'); }
+    else { showToast('✓ Verified · +5 pts'); load(); }
+  });
+}
+
 async function resolve(id) {
-  const res = await fetch('/resolve/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+  const res  = await fetch('/resolve/'+id, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
   const data = await res.json();
   load();
   if (data.nearby_ngos && data.nearby_ngos.length) { showNGOPopup(data.nearby_ngos); }
   else { showToast('✔ Resolved · +20 pts 🎉'); }
 }
+
+async function escalate(id) {
+  const res  = await fetch('/ngo/escalate/'+id, {method:'POST', headers:{'Content-Type':'application/json'}});
+  const data = await res.json();
+  showToast(`↑ Escalated to ${data.ngo?.name||'NGO'}`, 'ngo'); load();
+}
+
 function showNGOPopup(ngos) {
   document.getElementById('ngo-popup-list').innerHTML = ngos.map(ngo => `
     <div class="ngo-popup-card">
@@ -211,18 +258,34 @@ function showNGOPopup(ngos) {
   document.getElementById('ngo-popup').style.display = 'flex';
   document.getElementById('ngo-popup-overlay').style.display = 'block';
 }
+
 function closeNGOPopup() {
   document.getElementById('ngo-popup').style.display = 'none';
   document.getElementById('ngo-popup-overlay').style.display = 'none';
   showToast('✔ Issue resolved · +20 pts 🎉');
 }
-async function escalate(id) {
-  const res = await fetch('/ngo/escalate/'+id,{method:'POST',headers:{'Content-Type':'application/json'}});
-  const d = await res.json();
-  showToast(`↑ Escalated to ${d.ngo?.name||'NGO'}`, 'ngo'); load();
+
+// ── LIGHTBOX ──────────────────────────────────────────────────────────────────
+function openLightboxById(issueId, caption) {
+  const src = _imgCache[issueId];
+  if (!src) return;
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-caption').textContent = caption || '';
+  document.getElementById('lightbox').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
 }
 
-loadAreas(); load();
+function closeLightbox(e) {
+  if (e && e.target !== document.getElementById('lightbox') && !e.target.classList.contains('lightbox-close')) return;
+  document.getElementById('lightbox').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { document.getElementById('lightbox').style.display = 'none'; document.body.style.overflow = ''; }
+});
+
+loadAreas();
+load();
 </script>
 </body>
 </html>
