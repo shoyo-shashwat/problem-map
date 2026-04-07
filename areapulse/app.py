@@ -77,10 +77,10 @@ def leaderboard_page(): return render_template('leaderboard.html')
 def redeem_page(): return render_template('redeem.html')
 
 @app.route('/ngo-page')
-def ngo_page(): return render_template('Ngos.html')
+def ngo_page(): return render_template('ngos.html')
 
 @app.route('/community-page')
-def community_page(): return render_template('Community.html')
+def community_page(): return render_template('community.html')
 
 # ── API ────────────────────────────────────────────────
 @app.route('/areas')
