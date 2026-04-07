@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Leaderboard — AreaPulse</title>
 <link rel="preconnect" href="https://api.fontshare.com">
 <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=cabinet-grotesk@300,400,500,700&display=swap" rel="stylesheet">
@@ -12,75 +11,45 @@
 <nav class="navbar">
   <div class="nav-brand"><div class="brand-dot"></div><span class="brand-name">AreaPulse</span><span class="brand-tag">Delhi</span></div>
   <div class="nav-center">
-    <a href="/" class="nav-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Live Map</a>
-    <a href="/issues-page" class="nav-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Issues</a>
-    <a href="/leaderboard-page" class="nav-link active"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Leaderboard</a>
-    <a href="/redeem-page" class="nav-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Redeem</a>
+    <a href="/" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Live Map</a>
+    <a href="/issues-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Issues</a>
+    <a href="/leaderboard-page" class="nav-link active"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Leaderboard</a>
+    <a href="/ngo-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>NGOs</a>
+    <a href="/community-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Community</a>
+    <a href="/redeem-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Redeem</a>
   </div>
   <div class="nav-right"><div class="live-badge"><span class="live-dot"></span>Live</div></div>
 </nav>
-
 <div class="page-container">
-  <div class="page-hero">
-    <div>
-      <h1 class="page-title">Leader<span>board</span></h1>
-      <p class="page-subtitle">Top civic contributors making Delhi better, one report at a time</p>
-    </div>
-  </div>
-
+  <div class="page-hero"><div><h1 class="page-title">Leader<span>board</span></h1><p class="page-subtitle">Top civic contributors making Delhi better, one report at a time</p></div></div>
   <div class="points-explainer">
     <div class="points-item"><span class="pts-icon">📍</span><span class="pts-label">Report Issue</span><span class="pts-val">+10 pts</span></div>
     <div class="points-divider"></div>
     <div class="points-item"><span class="pts-icon">⬆</span><span class="pts-label">Upvote</span><span class="pts-val">+2 pts</span></div>
     <div class="points-divider"></div>
-    <div class="points-item"><span class="pts-icon">✓</span><span class="pts-label">Verify Issue</span><span class="pts-val">+5 pts</span></div>
+    <div class="points-item"><span class="pts-icon">✓</span><span class="pts-label">Verify (Admin)</span><span class="pts-val">+5 pts</span></div>
     <div class="points-divider"></div>
     <div class="points-item"><span class="pts-icon">✔</span><span class="pts-label">Resolve Issue</span><span class="pts-val">+20 pts</span></div>
     <div class="points-divider"></div>
-    <div class="points-item"><span class="pts-icon">🎁</span><span class="pts-label">Redeem Rewards</span><span class="pts-val" style="font-size:13px">Metro, Cash & more</span></div>
+    <div class="points-item"><span class="pts-icon">💬</span><span class="pts-label">Community Post</span><span class="pts-val">+3 pts</span></div>
+    <div class="points-divider"></div>
+    <div class="points-item"><span class="pts-icon">🎁</span><span class="pts-label">Redeem Rewards</span><span class="pts-val" style="font-size:12px">Metro·Cash·More</span></div>
   </div>
-
   <div class="podium-row" id="podium-row"><div class="loading-state"><div class="spinner"></div></div></div>
-  <div class="leaderboard-table" id="leaderboard-table"></div>
+  <div class="leaderboard-table" id="lb-table"></div>
 </div>
-
 <script>
-async function load() {
-  const data = await (await fetch('/leaderboard')).json();
-  if (!data.length) {
-    document.getElementById('podium-row').innerHTML = '<div class="empty-state"><strong>No contributors yet.</strong><br>Be the first!</div>';
-    return;
-  }
-  const top3 = data.slice(0, 3);
-  const order = top3.length >= 2 ? [top3[1], top3[0], top3[2]].filter(Boolean) : top3;
-  const classes = top3.length >= 2 ? ['second','first','third'] : ['first'];
-  const emoji = {first:'🥇', second:'🥈', third:'🥉'};
-  const mbottom = {first:'0', second:'28px', third:'48px'};
-
-  document.getElementById('podium-row').innerHTML = order.map((u, i) => {
-    const cls = classes[i] || 'first';
-    return `<div class="podium-card ${cls}" style="margin-bottom:${mbottom[cls]||'0'}">
-      <div class="podium-avatar">${u.name.charAt(0).toUpperCase()}</div>
-      <div class="podium-name">${u.name}</div>
-      <div class="podium-pts">${u.points} pts</div>
-      <div class="podium-rank">${emoji[cls]}</div>
-    </div>`;
-  }).join('');
-
-  if (data.length <= 3) { document.getElementById('leaderboard-table').innerHTML = ''; return; }
-
-  document.getElementById('leaderboard-table').innerHTML = `
-    <div class="table-header"><span>Rank</span><span>Contributor</span><span>Points</span><span>Level</span></div>
-    ${data.slice(3).map((u, i) => {
-      const rank = i + 4;
-      const lvl = u.points >= 500 ? '🔥 Champion' : u.points >= 200 ? '⚡ Active' : u.points >= 50 ? '🌱 Rising' : '👤 Newcomer';
-      return `<div class="table-row">
-        <span class="table-rank">#${rank}</span>
-        <span class="table-name"><div class="table-avatar">${u.name.charAt(0).toUpperCase()}</div>${u.name}</span>
-        <span class="table-pts">${u.points} pts</span>
-        <span class="table-level">${lvl}</span>
-      </div>`;
-    }).join('')}`;
+async function load(){
+  const data=await(await fetch('/leaderboard')).json();
+  if(!data.length){document.getElementById('podium-row').innerHTML='<div class="empty-state"><strong>No contributors yet.</strong><br>Be the first!</div>';return;}
+  const top3=data.slice(0,3);
+  const order=top3.length>=2?[top3[1],top3[0],top3[2]].filter(Boolean):top3;
+  const cls=top3.length>=2?['second','first','third']:['first'];
+  const em={first:'🥇',second:'🥈',third:'🥉'};
+  const mb={first:'0',second:'28px',third:'46px'};
+  document.getElementById('podium-row').innerHTML=order.map((u,i)=>{const c=cls[i]||'first';return`<div class="podium-card ${c}" style="margin-bottom:${mb[c]||'0'}"><div class="podium-avatar">${u.name.charAt(0).toUpperCase()}</div><div class="podium-name">${u.name}</div><div class="podium-pts">${u.points} pts</div><div class="podium-rank">${em[c]}</div></div>`;}).join('');
+  if(data.length<=3){document.getElementById('lb-table').innerHTML='';return;}
+  document.getElementById('lb-table').innerHTML=`<div class="table-header"><span>Rank</span><span>Contributor</span><span>Points</span><span>Level</span></div>${data.slice(3).map((u,i)=>{const lvl=u.points>=500?'🔥 Champion':u.points>=200?'⚡ Active':u.points>=50?'🌱 Rising':'👤 Newcomer';return`<div class="table-row"><span class="table-rank">#${i+4}</span><span class="table-name"><div class="table-avatar">${u.name.charAt(0).toUpperCase()}</div>${u.name}</span><span class="table-pts">${u.points} pts</span><span class="table-level">${lvl}</span></div>`;}).join('')}`;
 }
 load();
 </script>

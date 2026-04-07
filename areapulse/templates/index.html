@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AreaPulse — Civic Issue Tracker · Delhi</title>
 <link rel="preconnect" href="https://api.fontshare.com">
 <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=cabinet-grotesk@300,400,500,700&display=swap" rel="stylesheet">
@@ -10,608 +9,261 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
 <nav class="navbar">
-  <div class="nav-brand">
-    <div class="brand-dot"></div>
-    <span class="brand-name">AreaPulse</span>
-    <span class="brand-tag">Delhi</span>
-  </div>
+  <div class="nav-brand"><div class="brand-dot"></div><span class="brand-name">AreaPulse</span><span class="brand-tag">Delhi</span></div>
   <div class="nav-center">
-    <a href="/" class="nav-link active">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Live Map
-    </a>
-    <a href="/issues-page" class="nav-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Issues
-    </a>
-    <a href="/leaderboard-page" class="nav-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Leaderboard
-    </a>
-    <a href="/redeem-page" class="nav-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Redeem
-    </a>
+    <a href="/" class="nav-link active"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Live Map</a>
+    <a href="/issues-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Issues</a>
+    <a href="/leaderboard-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Leaderboard</a>
+    <a href="/ngo-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>NGOs</a>
+    <a href="/community-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Community</a>
+    <a href="/redeem-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Redeem</a>
   </div>
   <div class="nav-right">
-    <div class="points-badge" id="nav-points" style="display:none">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--yellow)" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      <span id="nav-pts-val">0</span> pts
-    </div>
+    <div class="points-badge" id="nav-points" style="display:none"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--yellow)" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span id="nav-pts-val">0</span> pts</div>
     <div class="live-badge"><span class="live-dot"></span>Live</div>
     <div class="user-pill" id="nav-user-display">Guest</div>
   </div>
 </nav>
 
-<!-- REPORT BAR -->
 <div class="report-bar">
   <div class="report-bar-inner">
-    <div class="input-group">
-      <label>Your Name</label>
-      <input id="user" type="text" placeholder="Enter your name" autocomplete="off">
-    </div>
-    <div class="input-group">
-      <label>Area</label>
-      <div class="area-wrap">
-        <select id="area"></select>
-        <button class="loc-btn" id="loc-btn" onclick="autoDetectLocation()" title="Auto-detect my location">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="input-group flex-grow">
-      <label>Issue Description</label>
-      <input id="desc" type="text" placeholder="e.g. Large pothole near metro gate causing accidents..." autocomplete="off">
-    </div>
-    <button class="report-btn" id="report-btn" onclick="submitIssue()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Report Issue
-    </button>
+    <div class="input-group"><label>Your Name</label><input id="user" type="text" placeholder="Enter your name" autocomplete="off"></div>
+    <div class="input-group"><label>Area</label><div class="area-wrap"><select id="area"></select><button class="loc-btn" id="loc-btn" onclick="autoDetect()" title="Detect location"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button></div></div>
+    <div class="input-group flex-grow"><label>Issue Description</label><input id="desc" type="text" placeholder="e.g. Large pothole near metro gate causing accidents..." autocomplete="off"></div>
+    <button class="report-btn" id="report-btn" onclick="submitIssue()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Report Issue</button>
   </div>
   <div class="report-bar-row2">
-    <div class="input-group">
-      <label>Landmark / Nearby</label>
-      <input id="landmark" type="text" placeholder="e.g. near Metro Gate 3, opposite D-Mart" style="width:220px" autocomplete="off">
-    </div>
-    <div class="input-group">
-      <label>Contact (optional)</label>
-      <input id="contact" type="text" placeholder="Phone or email" style="width:180px" autocomplete="off">
-    </div>
-    <div class="input-group">
-      <label>Severity</label>
-      <div class="severity-btns">
-        <button class="severity-btn" id="sev-low"    onclick="setSeverity('low')">🟢 Low</button>
-        <button class="severity-btn sel-medium" id="sev-medium" onclick="setSeverity('medium')">🟠 Medium</button>
-        <button class="severity-btn" id="sev-high"   onclick="setSeverity('high')">🔴 High</button>
-      </div>
-    </div>
-    <div class="input-group">
-      <label>Photo (optional)</label>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <label class="img-upload-btn" id="img-label" title="Attach a photo">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          <span id="img-label-text">Add Photo</span>
-          <input id="img-input" type="file" accept="image/*" style="display:none" onchange="handleImageSelect(this)">
-        </label>
-        <div id="img-preview-wrap" style="display:none;position:relative;">
-          <img id="img-preview" onclick="openLightboxDirect(this.src,'Preview')" style="width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid var(--border2);cursor:pointer;">
-          <button onclick="clearImage()" style="position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:var(--red);border:none;color:white;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
-        </div>
-      </div>
-    </div>
+    <div class="input-group"><label>Landmark</label><input id="landmark" type="text" placeholder="e.g. near Metro Gate 3" style="width:200px" autocomplete="off"></div>
+    <div class="input-group"><label>Contact (optional)</label><input id="contact" type="text" placeholder="Phone or email" style="width:160px" autocomplete="off"></div>
+    <div class="input-group"><label>Severity</label><div class="severity-btns"><button class="severity-btn" id="sev-low" onclick="setSev('low')">🟢 Low</button><button class="severity-btn sel-medium" id="sev-medium" onclick="setSev('medium')">🟠 Medium</button><button class="severity-btn" id="sev-high" onclick="setSev('high')">🔴 High</button></div></div>
+    <div class="input-group"><label>Photo (optional)</label><div style="display:flex;align-items:center;gap:7px"><label class="img-upload-btn" id="img-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span id="img-text">Add Photo</span><input id="img-input" type="file" accept="image/*" style="display:none" onchange="handleImg(this)"></label><div id="img-prev-wrap" style="display:none;position:relative"><img id="img-prev" onclick="openLbDirect(this.src,'Preview')" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border2);cursor:pointer"><button onclick="clearImg()" style="position:absolute;top:-5px;right:-5px;width:15px;height:15px;border-radius:50%;background:var(--red);border:none;color:white;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button></div></div></div>
   </div>
+</div>
+
+<!-- NEARBY NGO STRIP -->
+<div id="ngo-strip" class="ngo-strip">
+  <div class="ngo-strip-inner">
+    <div class="ngo-strip-title">📍 Nearby NGOs for this issue — Contact them directly</div>
+    <div class="ngo-strip-list" id="ngo-strip-list"></div>
+  </div>
+  <button class="ngo-strip-close" onclick="document.getElementById('ngo-strip').classList.remove('open')">×</button>
 </div>
 
 <!-- LIGHTBOX -->
-<div id="lightbox" class="lightbox" style="display:none;" onclick="closeLightbox(event)">
-  <div class="lightbox-box">
-    <button class="lightbox-close" onclick="closeLightbox()">×</button>
-    <img id="lightbox-img" src="" alt="Issue photo">
-    <div class="lightbox-caption" id="lightbox-caption"></div>
-  </div>
+<div id="lightbox" class="lightbox" style="display:none" onclick="closeLb(event)">
+  <div class="lightbox-box"><button class="lightbox-close" onclick="closeLb()">×</button><img id="lb-img" src="" alt=""><div class="lightbox-caption" id="lb-cap"></div></div>
 </div>
 
-<!-- NGO ALERT BANNER -->
-<div id="ngo-alert" style="display:none;background:linear-gradient(90deg,rgba(79,126,248,0.1),rgba(124,92,252,0.07));border-bottom:1px solid rgba(79,126,248,0.2);padding:10px 32px;position:relative;z-index:99;">
-  <div style="max-width:1600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-    <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
-      <span id="ngo-alert-icon" style="font-size:18px;"></span>
-      <strong style="color:var(--text);font-family:var(--font-display);" id="ngo-alert-name"></strong>
-      <span style="color:var(--text2);" id="ngo-alert-focus"></span>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <a id="ngo-alert-email" href="#" style="font-size:12px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.3);padding:4px 12px;border-radius:6px;background:rgba(79,126,248,0.07);">📧 Email NGO</a>
-      <a id="ngo-alert-phone" href="#" style="font-size:12px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.3);padding:4px 12px;border-radius:6px;background:rgba(31,209,138,0.07);">📞 Call NGO</a>
-      <button onclick="document.getElementById('ngo-alert').style.display='none'" style="font-size:18px;background:none;border:none;color:var(--text3);cursor:pointer;line-height:1;">×</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
 <div id="toast" class="toast"></div>
 
-<!-- NEARBY NGO POPUP -->
-<div id="ngo-popup" class="ngo-popup" style="display:none;">
+<!-- NGO POPUP (on resolve) -->
+<div id="ngo-popup" class="ngo-popup" style="display:none">
   <div class="ngo-popup-inner">
-    <div class="ngo-popup-header">
-      <div>
-        <div class="ngo-popup-title">🎉 Issue Resolved! +20 pts</div>
-        <div class="ngo-popup-sub">Nearby NGOs that can help in your area:</div>
-      </div>
-      <button onclick="closeNGOPopup()" class="ngo-popup-close">×</button>
-    </div>
+    <div class="ngo-popup-header"><div><div class="ngo-popup-title">🎉 Issue Resolved! +20 pts</div><div class="ngo-popup-sub">Nearby NGOs that can help follow up:</div></div><button onclick="closeNgoPopup()" class="ngo-popup-close">×</button></div>
     <div id="ngo-popup-list" class="ngo-popup-list"></div>
   </div>
 </div>
-<div id="ngo-popup-overlay" class="ngo-popup-overlay" style="display:none;" onclick="closeNGOPopup()"></div>
+<div id="ngo-popup-overlay" class="ngo-popup-overlay" style="display:none" onclick="closeNgoPopup()"></div>
 
-<!-- MAIN LAYOUT -->
 <div class="app-body">
   <div class="map-section">
-    <div class="section-header">
-      <h2 class="section-title">Issue Heatmap — Delhi</h2>
-      <div class="legend">
-        <span><span class="legend-dot high"></span>High (8+)</span>
-        <span><span class="legend-dot medium"></span>Medium (4–7)</span>
-        <span><span class="legend-dot low"></span>Low (1–3)</span>
-      </div>
-    </div>
+    <div class="section-header"><h2 class="section-title">Issue Heatmap — Delhi</h2><div class="legend"><span><span class="legend-dot high"></span>High (8+)</span><span><span class="legend-dot medium"></span>Medium (4–7)</span><span><span class="legend-dot low"></span>Low (1–3)</span></div></div>
     <div class="map-wrap"><div id="map"></div></div>
     <div class="stats-row">
       <div class="stat-card"><span class="stat-num" id="stat-total">—</span><span class="stat-label">Total Issues</span></div>
       <div class="stat-card"><span class="stat-num" id="stat-open">—</span><span class="stat-label">Open</span></div>
       <div class="stat-card"><span class="stat-num" id="stat-resolved">—</span><span class="stat-label">Resolved</span></div>
-      <div class="stat-card"><span class="stat-num" id="stat-areas">—</span><span class="stat-label">Areas Affected</span></div>
+      <div class="stat-card"><span class="stat-num" id="stat-areas">—</span><span class="stat-label">Areas</span></div>
     </div>
   </div>
-
   <div class="side-panel">
     <div class="tab-bar">
       <button class="tab active" onclick="switchTab('issues',this)">Live Issues</button>
       <button class="tab" onclick="switchTab('ngo',this)">NGOs</button>
-      <button class="tab" onclick="switchTab('top',this)">Top Reporters</button>
+      <button class="tab" onclick="switchTab('top',this)">Rankings</button>
     </div>
-    <div id="tab-issues" class="tab-content active">
-      <div class="issues-list" id="issues-list"><div class="loading-state"><div class="spinner"></div><p>Loading...</p></div></div>
-    </div>
-    <div id="tab-ngo" class="tab-content">
-      <div id="ngo-list" style="padding:10px;display:flex;flex-direction:column;gap:8px;"></div>
-    </div>
-    <div id="tab-top" class="tab-content">
-      <div class="leaderboard-mini" id="leaderboard-mini"><div class="loading-state"><div class="spinner"></div></div></div>
-    </div>
+    <div id="tab-issues" class="tab-content active"><div class="issues-list" id="issues-list"><div class="loading-state"><div class="spinner"></div><p>Loading...</p></div></div></div>
+    <div id="tab-ngo" class="tab-content"><div id="ngo-list" style="padding:9px;display:flex;flex-direction:column;gap:7px"></div></div>
+    <div id="tab-top" class="tab-content"><div class="leaderboard-mini" id="lb-mini"><div class="loading-state"><div class="spinner"></div></div></div></div>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ── STATE ─────────────────────────────────────────────────────────────────────
-let map, mapLayers = [], userLat = null, userLng = null;
-let currentUser = '';
-// Image cache: maps issue id -> base64 src (avoids quote escaping issues)
-const _imgCache = {};
+let map, mapLayers=[], uLat=null, uLng=null;
+const IC={};
+map=L.map('map',{zoomControl:false}).setView([28.6139,77.2090],11);
+L.control.zoom({position:'bottomright'}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:19}).addTo(map);
 
-// ── MAP INIT ──────────────────────────────────────────────────────────────────
-map = L.map('map', { zoomControl: false }).setView([28.6139, 77.2090], 11);
-L.control.zoom({ position: 'bottomright' }).addTo(map);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© OpenStreetMap © CARTO', maxZoom: 19
-}).addTo(map);
+const AREAS_JS={'Connaught Place':[28.6315,77.2167],'Karol Bagh':[28.6514,77.1907],'Rohini':[28.7041,77.1025],'Pitampura':[28.7007,77.1311],'Model Town':[28.7167,77.1900],'Shalimar Bagh':[28.7167,77.1667],'Burari':[28.7470,77.2100],'Saket':[28.5244,77.2090],'Vasant Kunj':[28.5200,77.1590],'Mehrauli':[28.5244,77.1855],'Malviya Nagar':[28.5355,77.2068],'Hauz Khas':[28.5494,77.2001],'Lajpat Nagar':[28.5677,77.2378],'Kalkaji':[28.5494,77.2590],'Dwarka':[28.5921,77.0460],'Janakpuri':[28.6219,77.0878],'Uttam Nagar':[28.6219,77.0560],'Laxmi Nagar':[28.6310,77.2780],'Shahdara':[28.6706,77.2944],'Mayur Vihar':[28.6090,77.2944],'Rajouri Garden':[28.6447,77.1220],'Nangloi':[28.6706,77.0590],'Okhla':[28.5355,77.2780],'Seelampur':[28.6706,77.3012],'Mustafabad':[28.7167,77.3012],'Sangam Vihar':[28.5022,77.2590],'Chandni Chowk':[28.6506,77.2303],'Paharganj':[28.6448,77.2167],'Daryaganj':[28.6417,77.2353],'Narela':[28.8530,77.0920]};
 
-// ── LOAD AREAS ────────────────────────────────────────────────────────────────
-async function loadAreas() {
-  const areas = await (await fetch('/areas')).json();
-  const sel = document.getElementById('area');
-  sel.innerHTML = '<option value="">Select area...</option>' +
-    areas.map(a => `<option value="${a}">${a}</option>`).join('');
+async function loadAreas(){
+  const a=await(await fetch('/areas')).json();
+  document.getElementById('area').innerHTML='<option value="">Select area...</option>'+a.map(x=>`<option>${x}</option>`).join('');
 }
 
-// ── AUTO DETECT LOCATION ──────────────────────────────────────────────────────
-function autoDetectLocation() {
-  const btn = document.getElementById('loc-btn');
-  btn.style.opacity = '0.5';
-  btn.innerHTML = '<div class="spinner" style="width:12px;height:12px;border-width:2px;"></div>';
-
-  if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); return; }
-
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      userLat = pos.coords.latitude;
-      userLng = pos.coords.longitude;
-      L.circleMarker([userLat, userLng], {
-        radius: 8, color: '#4f7ef8', fillColor: '#4f7ef8', fillOpacity: 1, weight: 3
-      }).addTo(map).bindPopup('<strong style="color:#eef0f6">📍 Your Location</strong>').openPopup();
-      map.setView([userLat, userLng], 13);
-      const nearestArea = await findNearestArea(userLat, userLng);
-      if (nearestArea) { document.getElementById('area').value = nearestArea; showToast(`📍 Location detected: ${nearestArea}`); }
-      btn.style.opacity = '1';
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg>';
-    },
-    () => {
-      showToast('Could not detect location', 'error');
-      btn.style.opacity = '1';
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg>';
-    }
-  );
+function autoDetect(){
+  const b=document.getElementById('loc-btn');b.style.opacity='.5';
+  if(!navigator.geolocation){toast('Geolocation not supported','error');return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    uLat=pos.coords.latitude;uLng=pos.coords.longitude;
+    L.circleMarker([uLat,uLng],{radius:8,color:'#4f7ef8',fillColor:'#4f7ef8',fillOpacity:1,weight:3}).addTo(map).bindPopup('<strong style="color:#eef0f6">📍 Your Location</strong>').openPopup();
+    map.setView([uLat,uLng],13);
+    let best=null,bd=Infinity;
+    for(const[n,[la,ln]] of Object.entries(AREAS_JS)){const d=Math.sqrt((uLat-la)**2+(uLng-ln)**2);if(d<bd){bd=d;best=n;}}
+    if(best){document.getElementById('area').value=best;toast(`📍 Location: ${best}`);}
+    b.style.opacity='1';b.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
+  },()=>{toast('Could not get location','error');b.style.opacity='1';});
 }
 
-async function findNearestArea(lat, lng) {
-  const AREAS = {
-    'Connaught Place':[28.6315,77.2167],'Karol Bagh':[28.6514,77.1907],'Paharganj':[28.6448,77.2167],
-    'Chandni Chowk':[28.6506,77.2303],'Rohini':[28.7041,77.1025],'Pitampura':[28.7007,77.1311],
-    'Model Town':[28.7167,77.1900],'Shalimar Bagh':[28.7167,77.1667],'Burari':[28.7470,77.2100],
-    'Saket':[28.5244,77.2090],'Vasant Kunj':[28.5200,77.1590],'Mehrauli':[28.5244,77.1855],
-    'Malviya Nagar':[28.5355,77.2068],'Hauz Khas':[28.5494,77.2001],'Greater Kailash':[28.5494,77.2378],
-    'Lajpat Nagar':[28.5677,77.2378],'Kalkaji':[28.5494,77.2590],'Dwarka':[28.5921,77.0460],
-    'Janakpuri':[28.6219,77.0878],'Uttam Nagar':[28.6219,77.0560],'Vikaspuri':[28.6355,77.0720],
-    'Laxmi Nagar':[28.6310,77.2780],'Preet Vihar':[28.6355,77.2944],'Shahdara':[28.6706,77.2944],
-    'Mayur Vihar':[28.6090,77.2944],'Patparganj':[28.6219,77.3012],'Rajouri Garden':[28.6447,77.1220],
-    'Punjabi Bagh':[28.6590,77.1311],'Geeta Colony':[28.6590,77.2780],'Narela':[28.8530,77.0920],
-    'Nangloi':[28.6706,77.0590],'Daryaganj':[28.6417,77.2353],'Okhla':[28.5355,77.2780],
-  };
-  let best = null, bestDist = Infinity;
-  for (const [name, [alat, alng]] of Object.entries(AREAS)) {
-    const d = Math.sqrt((lat-alat)**2 + (lng-alng)**2);
-    if (d < bestDist) { bestDist = d; best = name; }
-  }
-  return best;
+function switchTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='top')loadLbMini();if(tab==='ngo')loadNgoList();
 }
 
-// ── UTILS ─────────────────────────────────────────────────────────────────────
-function switchTab(tab, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
-  if (tab === 'top') loadLeaderboardMini();
-  if (tab === 'ngo') loadNGOs();
+function toast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+type;setTimeout(()=>t.className='toast',3500);}
+
+function tagColor(tag){const m={pothole:'#ff7c38',garbage:'#84cc16',streetlight:'#ffc94a',water:'#22d4e0',traffic:'#ff4069',noise:'#a78bfa',sewage:'#fb923c',electricity:'#facc15',tree:'#4ade80'};for(let k in m)if(tag&&tag.includes(k))return m[k];return'#7b86a0';}
+function statusBadge(s){if(s==='resolved')return'<span class="badge resolved">✓ Resolved</span>';if(s==='verified')return'<span class="badge verified">● Verified</span>';if(s==='escalated')return'<span class="badge escalated">↑ Escalated</span>';return'<span class="badge open">○ Open</span>';}
+
+let selSev='medium';
+function setSev(l){selSev=l;['low','medium','high'].forEach(x=>{const b=document.getElementById('sev-'+x);if(b)b.className='severity-btn'+(x===l?' sel-'+l:'');});}
+
+let selImg=null;
+function handleImg(input){const f=input.files[0];if(!f)return;if(f.size>5*1024*1024){toast('Image too large (max 5MB)','error');return;}const r=new FileReader();r.onload=e=>{selImg=e.target.result;document.getElementById('img-prev').src=selImg;document.getElementById('img-prev-wrap').style.display='block';document.getElementById('img-text').textContent='✓ Photo';document.getElementById('img-label').classList.add('has-img');};r.readAsDataURL(f);}
+function clearImg(){selImg=null;document.getElementById('img-input').value='';document.getElementById('img-prev-wrap').style.display='none';document.getElementById('img-text').textContent='Add Photo';document.getElementById('img-label').classList.remove('has-img');}
+
+function openLbById(id,cap){const s=IC[id];if(!s)return;document.getElementById('lb-img').src=s;document.getElementById('lb-cap').textContent=cap||'';document.getElementById('lightbox').style.display='flex';document.body.style.overflow='hidden';}
+function openLbDirect(s,cap){if(!s)return;document.getElementById('lb-img').src=s;document.getElementById('lb-cap').textContent=cap||'';document.getElementById('lightbox').style.display='flex';document.body.style.overflow='hidden';}
+function closeLb(e){if(e&&e.target!==document.getElementById('lightbox')&&!e.target.classList.contains('lightbox-close'))return;document.getElementById('lightbox').style.display='none';document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('lightbox').style.display='none';document.body.style.overflow='';}});
+
+async function submitIssue(){
+  const user=document.getElementById('user').value.trim()||'Anonymous';
+  const area=document.getElementById('area').value;
+  const desc=document.getElementById('desc').value.trim();
+  const landmark=document.getElementById('landmark').value.trim();
+  const contact=document.getElementById('contact').value.trim();
+  if(!area||!desc){toast('Fill in area and description','error');return;}
+  if(desc.length<10){toast('Description too short!','error');return;}
+  const btn=document.getElementById('report-btn');btn.disabled=true;
+  btn.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Submitting...';
+  try{
+    const res=await fetch('/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user,area,description:desc,lat:uLat,lng:uLng,image:selImg,severity:selSev,landmark,contact})});
+    const d=await res.json();
+    if(d.status==='ok'){
+      toast(`✓ Reported as "${d.tag}" · +10 pts`);
+      document.getElementById('desc').value='';document.getElementById('landmark').value='';document.getElementById('contact').value='';
+      clearImg();setSev('medium');document.getElementById('nav-user-display').textContent=user;
+      if(d.nearby_ngos&&d.nearby_ngos.length)showNgoStrip(d.nearby_ngos);
+      updatePts(user);loadAll();
+    }else toast(d.error||'Error','error');
+  }catch{toast('Server error. Check Flask is running.','error');}
+  btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Report Issue';
 }
 
-function showToast(msg, type = 'success') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast show ' + type;
-  setTimeout(() => t.className = 'toast', 3500);
-}
+async function updatePts(user){if(!user)return;const d=await(await fetch('/user/points?name='+encodeURIComponent(user))).json();document.getElementById('nav-pts-val').textContent=d.points;document.getElementById('nav-points').style.display='flex';}
 
-function tagColor(tag) {
-  const m = {pothole:'#ff7c38',garbage:'#84cc16',streetlight:'#ffc94a',water:'#22d4e0',
-             traffic:'#ff4069',noise:'#a78bfa',sewage:'#fb923c',electricity:'#facc15',tree:'#4ade80'};
-  for (let k in m) if (tag && tag.toLowerCase().includes(k)) return m[k];
-  return '#7b86a0';
-}
-
-function statusBadge(s) {
-  if (s==='resolved')  return '<span class="badge resolved">✓ Resolved</span>';
-  if (s==='verified')  return '<span class="badge verified">● Verified</span>';
-  if (s==='escalated') return '<span class="badge escalated">↑ Escalated</span>';
-  return '<span class="badge open">○ Open</span>';
-}
-
-// ── SEVERITY ──────────────────────────────────────────────────────────────────
-let selectedSeverity = 'medium';
-function setSeverity(level) {
-  selectedSeverity = level;
-  ['low','medium','high'].forEach(l => {
-    const b = document.getElementById('sev-' + l);
-    if (b) b.className = 'severity-btn' + (l === level ? ' sel-' + l : '');
-  });
-}
-
-// ── IMAGE UPLOAD ──────────────────────────────────────────────────────────────
-let selectedImageData = null;
-
-function handleImageSelect(input) {
-  const file = input.files[0];
-  if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { showToast('Image too large (max 5MB)', 'error'); input.value = ''; return; }
-  const reader = new FileReader();
-  reader.onload = e => {
-    selectedImageData = e.target.result;
-    document.getElementById('img-preview').src = selectedImageData;
-    document.getElementById('img-preview-wrap').style.display = 'block';
-    document.getElementById('img-label-text').textContent = '✓ Photo added';
-    document.getElementById('img-label').classList.add('has-img');
-  };
-  reader.readAsDataURL(file);
-}
-
-function clearImage() {
-  selectedImageData = null;
-  document.getElementById('img-input').value = '';
-  document.getElementById('img-preview-wrap').style.display = 'none';
-  document.getElementById('img-label-text').textContent = 'Add Photo';
-  document.getElementById('img-label').classList.remove('has-img');
-}
-
-// ── LIGHTBOX ──────────────────────────────────────────────────────────────────
-// Safe: always pass src directly — never embedded in onclick attribute strings
-function openLightboxById(issueId, caption) {
-  const src = _imgCache[issueId];
-  if (!src) return;
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox-caption').textContent = caption || '';
-  document.getElementById('lightbox').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-
-function openLightboxDirect(src, caption) {
-  if (!src) return;
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox-caption').textContent = caption || '';
-  document.getElementById('lightbox').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-
-function closeLightbox(e) {
-  if (e && e.target !== document.getElementById('lightbox') && !e.target.classList.contains('lightbox-close')) return;
-  document.getElementById('lightbox').style.display = 'none';
-  document.body.style.overflow = '';
-}
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { document.getElementById('lightbox').style.display = 'none'; document.body.style.overflow = ''; }
-});
-
-// ── REPORT ────────────────────────────────────────────────────────────────────
-async function submitIssue() {
-  const user     = document.getElementById('user').value.trim() || 'Anonymous';
-  const area     = document.getElementById('area').value;
-  const desc     = document.getElementById('desc').value.trim();
-  const landmark = document.getElementById('landmark').value.trim();
-  const contact  = document.getElementById('contact').value.trim();
-  if (!area || !desc) { showToast('Fill in area and description', 'error'); return; }
-  if (desc.length < 10) { showToast('Description too short!', 'error'); return; }
-
-  const btn = document.getElementById('report-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="width:15px;height:15px;border-width:2px;"></div> Submitting...';
-
-  try {
-    const res = await fetch('/report', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        user, area, description: desc,
-        lat: userLat, lng: userLng,
-        image: selectedImageData,
-        severity: selectedSeverity,
-        landmark, contact
-      })
-    });
-    const data = await res.json();
-    if (data.status === 'ok') {
-      showToast(`✓ Reported as "${data.tag}" · +10 pts`);
-      document.getElementById('desc').value = '';
-      document.getElementById('landmark').value = '';
-      document.getElementById('contact').value = '';
-      clearImage();
-      setSeverity('medium');
-      currentUser = user;
-      document.getElementById('nav-user-display').textContent = user;
-      if (data.ngo) {
-        const ngo = data.ngo;
-        document.getElementById('ngo-alert-icon').textContent  = ngo.icon || '🏛️';
-        document.getElementById('ngo-alert-name').textContent  = ngo.name;
-        document.getElementById('ngo-alert-focus').textContent = '— ' + ngo.focus;
-        document.getElementById('ngo-alert-email').href = 'mailto:' + ngo.contact;
-        document.getElementById('ngo-alert-phone').href = 'tel:' + ngo.phone;
-        document.getElementById('ngo-alert').style.display = 'block';
-      }
-      updatePointsBadge(user);
-      loadAll();
-    } else {
-      showToast(data.error || 'Error', 'error');
-    }
-  } catch(e) {
-    showToast('Server error. Try again.', 'error');
-  }
-
-  btn.disabled = false;
-  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Report Issue';
-}
-
-async function updatePointsBadge(user) {
-  if (!user) return;
-  const d = await (await fetch('/user/points?name=' + encodeURIComponent(user))).json();
-  document.getElementById('nav-pts-val').textContent = d.points;
-  document.getElementById('nav-points').style.display = 'flex';
-}
-
-// ── LOAD ISSUES ───────────────────────────────────────────────────────────────
-async function loadIssues() {
-  const data = await (await fetch('/issues')).json();
-  document.getElementById('stat-total').textContent    = data.length;
-  document.getElementById('stat-open').textContent     = data.filter(i => !i.status || i.status === 'open').length;
-  document.getElementById('stat-resolved').textContent = data.filter(i => i.status === 'resolved').length;
-
-  // Populate image cache
-  data.forEach(i => { if (i.image) _imgCache[i.id] = i.image; });
-
-  const list = document.getElementById('issues-list');
-  if (!data.length) {
-    list.innerHTML = '<div class="empty-state">No issues yet.<br><strong>Be the first to report!</strong></div>';
-    return;
-  }
-
-  list.innerHTML = data.slice().reverse().slice(0, 30).map(i => `
+async function loadIssues(){
+  const data=await(await fetch('/issues')).json();
+  document.getElementById('stat-total').textContent=data.length;
+  document.getElementById('stat-open').textContent=data.filter(i=>!i.status||i.status==='open').length;
+  document.getElementById('stat-resolved').textContent=data.filter(i=>i.status==='resolved').length;
+  data.forEach(i=>{if(i.image)IC[i.id]=i.image;});
+  const list=document.getElementById('issues-list');
+  if(!data.length){list.innerHTML='<div class="empty-state">No issues yet.<br><strong>Be the first!</strong></div>';return;}
+  list.innerHTML=data.slice().reverse().slice(0,30).map(i=>`
     <div class="issue-card">
       <div class="issue-top">
-        <div class="issue-area-tag">
-          <span class="area-name">${i.area}</span>
-          <span class="tag-chip" style="background:${tagColor(i.tag)}18;color:${tagColor(i.tag)}">${i.tag||'other'}</span>
-          ${i.severity ? `<span class="sev-badge ${i.severity}">${i.severity}</span>` : ''}
-        </div>
+        <div class="issue-area-tag"><span class="area-name">${i.area}</span><span class="tag-chip" style="background:${tagColor(i.tag)}18;color:${tagColor(i.tag)}">${i.tag||'other'}</span>${i.severity?`<span class="sev-badge ${i.severity}">${i.severity}</span>`:''}</div>
         ${statusBadge(i.status)}
       </div>
       <p class="issue-desc">${i.description}</p>
-      ${i.landmark ? `<div style="font-size:11px;color:var(--text3);margin-bottom:5px;">📍 ${i.landmark}</div>` : ''}
-      ${i.image ? `
-        <div class="issue-img-thumb" onclick="openLightboxById(${i.id}, '${i.area} — ${i.tag||''}')">
-          <img src="${i.image}" alt="Issue photo">
-          <span class="issue-img-thumb-label">🔍 View</span>
-        </div>` : ''}
+      ${i.landmark?`<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">📍 ${i.landmark}</div>`:''}
+      ${i.image?`<div class="issue-img-thumb" onclick="openLbById(${i.id},'${i.area}')"><img src="${i.image}" alt="photo"><span class="issue-img-thumb-label">🔍 View</span></div>`:''}
       <div class="issue-footer">
-        <span class="issue-reporter">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          ${i.user||'Anonymous'}
-        </span>
+        <span class="issue-reporter"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${i.user||'Anon'}</span>
         <div class="issue-actions">
-          <button class="action-btn upvote" onclick="upvote(${i.id})">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-            ${i.upvotes||0}
-          </button>
-          <button class="action-btn verify"   onclick="verify(${i.id})">✓</button>
-          <button class="action-btn resolve"  onclick="resolveIssue(${i.id})">✔</button>
-          <button class="action-btn escalate" onclick="escalate(${i.id})">↑NGO</button>
+          <button class="action-btn upvote" onclick="doUpvote(${i.id})"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>${i.upvotes||0}</button>
+          <button class="action-btn verify" onclick="doVerify(${i.id})">✓</button>
+          <button class="action-btn resolve" onclick="doResolve(${i.id})">✔</button>
+          <button class="action-btn escalate" onclick="doEscalate(${i.id})">↑NGO</button>
         </div>
       </div>
     </div>`).join('');
 }
 
-// ── MAP ───────────────────────────────────────────────────────────────────────
-async function loadMap() {
-  const data = await (await fetch('/map-data')).json();
-  mapLayers.forEach(l => map.removeLayer(l));
-  mapLayers = [];
-  document.getElementById('stat-areas').textContent = data.length;
-
-  data.forEach(a => {
-    const cols = {high:'#ff4069', medium:'#ff9c38', low:'#1fd18a'};
-    const c = cols[a.heat] || '#1fd18a';
-    const radius = 1800 + (a.count * 200);
-
-    const circle = L.circle([a.lat, a.lng], {
-      radius, color: c, fillColor: c, fillOpacity: 0.15, weight: 1.5, opacity: 0.7
-    }).addTo(map);
-
-    if (a.heat === 'high') {
-      const outer = L.circle([a.lat, a.lng], {
-        radius: radius + 500, color: c, fillColor: 'transparent',
-        fillOpacity: 0, weight: 1, opacity: 0.3, dashArray: '6 4'
-      }).addTo(map);
-      mapLayers.push(outer);
-    }
-
-    const heatLabel = {high:'🔴 High Severity', medium:'🟠 Medium Severity', low:'🟢 Low Severity'};
-    circle.bindPopup(`
-      <div style="font-family:'Cabinet Grotesk',sans-serif;min-width:160px">
-        <strong style="font-size:15px;font-family:'Clash Display',sans-serif;color:#eef0f6">${a.area}</strong><br>
-        <span style="color:${c};font-weight:700;font-size:13px">${a.count} issue${a.count!==1?'s':''}</span><br>
-        <span style="color:#7b86a0;font-size:12px">${heatLabel[a.heat]}</span>
-      </div>`);
-
-    const dot = L.circleMarker([a.lat, a.lng], {
-      radius: 5, color: c, fillColor: c, fillOpacity: 1, weight: 0
-    }).addTo(map);
-
-    mapLayers.push(circle, dot);
+async function loadMap(){
+  const data=await(await fetch('/map-data')).json();
+  mapLayers.forEach(l=>map.removeLayer(l));mapLayers=[];
+  document.getElementById('stat-areas').textContent=data.length;
+  data.forEach(a=>{
+    const cols={high:'#ff4069',medium:'#ff9c38',low:'#1fd18a'};const c=cols[a.heat]||'#1fd18a';const r=1600+a.count*220;
+    const circle=L.circle([a.lat,a.lng],{radius:r,color:c,fillColor:c,fillOpacity:0.14,weight:1.5,opacity:0.7}).addTo(map);
+    if(a.heat==='high'){const o=L.circle([a.lat,a.lng],{radius:r+500,color:c,fillColor:'transparent',fillOpacity:0,weight:1,opacity:0.25,dashArray:'6 4'}).addTo(map);mapLayers.push(o);}
+    const hl={high:'🔴 High Severity',medium:'🟠 Medium Severity',low:'🟢 Low Severity'};
+    circle.bindPopup(`<div style="font-family:'Cabinet Grotesk',sans-serif;min-width:155px"><strong style="font-size:14px;font-family:'Clash Display',sans-serif;color:#eef0f6">${a.area}</strong><br><span style="color:${c};font-weight:700;font-size:13px">${a.count} issue${a.count!==1?'s':''}</span><br><span style="color:#7b86a0;font-size:12px">${hl[a.heat]}</span><br><span style="color:#3d4560;font-size:11px">Circle size = issue density</span></div>`);
+    const dot=L.circleMarker([a.lat,a.lng],{radius:5,color:c,fillColor:c,fillOpacity:1,weight:0}).addTo(map);
+    mapLayers.push(circle,dot);
   });
 }
 
-// ── NGO LIST ──────────────────────────────────────────────────────────────────
-async function loadNGOs() {
-  const data = await (await fetch('/ngo/all')).json();
-  const list = document.getElementById('ngo-list');
-  const entries = Object.entries(data).filter(([k]) => k !== 'default');
-  list.innerHTML = entries.map(([tag, ngo]) => `
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px 15px;">
-      <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
-        <span style="font-size:20px">${ngo.icon||'🏛️'}</span>
-        <div style="flex:1;min-width:0">
-          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text)">${ngo.name}</div>
-          <div style="font-size:11px;color:var(--text2)">${ngo.focus}</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px">📍 ${ngo.address}</div>
-        </div>
-        <span style="font-size:9px;font-weight:800;color:${tagColor(tag)};background:${tagColor(tag)}18;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0">${tag}</span>
+async function loadNgoList(){
+  const data=await(await fetch('/ngo/all?sort=resolved')).json();
+  document.getElementById('ngo-list').innerHTML=data.slice(0,8).map(n=>`
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:10px 12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+        <span style="font-size:17px">${n.icon||'🏛️'}</span>
+        <div style="flex:1;min-width:0"><div style="font-family:var(--font-display);font-weight:700;font-size:12px;color:var(--text)">${n.name}</div><div style="font-size:10px;color:var(--text2)">${n.focus}</div></div>
+        <span style="font-size:10px;font-weight:700;color:var(--green)">${n.issues_resolved} resolved</span>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <a href="mailto:${ngo.contact}" style="font-size:11px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.25);padding:4px 10px;border-radius:6px;background:rgba(79,126,248,0.07);">📧 Email</a>
-        <a href="tel:${ngo.phone}" style="font-size:11px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.25);padding:4px 10px;border-radius:6px;background:rgba(31,209,138,0.07);">📞 ${ngo.phone}</a>
+      <div style="display:flex;gap:5px">
+        <a href="tel:${n.phone}" style="font-size:10.5px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.25);padding:3px 8px;border-radius:5px;background:rgba(31,209,138,0.07)">📞 ${n.phone}</a>
+        <a href="mailto:${n.email}" style="font-size:10.5px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.25);padding:3px 8px;border-radius:5px;background:rgba(79,126,248,0.07)">📧 Email</a>
       </div>
     </div>`).join('');
 }
 
-// ── LEADERBOARD MINI ──────────────────────────────────────────────────────────
-async function loadLeaderboardMini() {
-  const data = await (await fetch('/leaderboard')).json();
-  const medals = ['🥇','🥈','🥉'];
-  document.getElementById('leaderboard-mini').innerHTML = !data.length
-    ? '<div class="empty-state">No contributors yet.</div>'
-    : data.map((u,i) => `
-        <div class="mini-rank">
-          <span class="rank-icon">${medals[i]||'#'+(i+1)}</span>
-          <span class="rank-name">${u.name}</span>
-          <span class="rank-pts">${u.points} pts</span>
-        </div>`).join('');
+async function loadLbMini(){
+  const data=await(await fetch('/leaderboard')).json();
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('lb-mini').innerHTML=!data.length?'<div class="empty-state">No contributors yet.</div>':data.map((u,i)=>`<div class="mini-rank"><span class="rank-icon">${medals[i]||'#'+(i+1)}</span><span class="rank-name">${u.name}</span><span class="rank-pts">${u.points} pts</span></div>`).join('');
 }
 
-// ── ACTIONS ───────────────────────────────────────────────────────────────────
-const getUser = () => document.getElementById('user').value.trim() || 'anonymous';
-
-async function upvote(id) {
-  await fetch('/upvote/'+id, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:getUser()})});
-  showToast('⬆ Upvoted · +2 pts'); loadAll(); updatePointsBadge(getUser());
-}
-
-function verify(id) {
-  const pwd = prompt('🔒 Admin password required to verify issues:');
-  if (pwd === null) return;
-  fetch('/verify/'+id, {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({user: getUser(), admin_password: pwd})
-  }).then(r => r.json()).then(data => {
-    if (data.error) { showToast(data.error, 'error'); }
-    else { showToast('✓ Verified · +5 pts'); loadAll(); updatePointsBadge(getUser()); }
-  });
-}
-
-async function resolveIssue(id) {
-  const res  = await fetch('/resolve/'+id, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:getUser()})});
-  const data = await res.json();
-  loadAll(); updatePointsBadge(getUser());
-  if (data.nearby_ngos && data.nearby_ngos.length) { showNGOPopup(data.nearby_ngos); }
-  else { showToast('✔ Resolved · +20 pts 🎉'); }
-}
-
-async function escalate(id) {
-  const res  = await fetch('/ngo/escalate/'+id, {method:'POST',headers:{'Content-Type':'application/json'}});
-  const data = await res.json();
-  showToast(`↑ Escalated to ${data.ngo?.name||'NGO'}`, 'ngo'); loadAll();
-}
-
-// ── NGO POPUP ────────────────────────────────────────────────────────────────
-function showNGOPopup(ngos) {
-  document.getElementById('ngo-popup-list').innerHTML = ngos.map(ngo => `
-    <div class="ngo-popup-card">
-      <div class="ngo-popup-card-left">
-        <span style="font-size:22px">${ngo.icon||'🏛️'}</span>
-        <div>
-          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text)">${ngo.name}</div>
-          <div style="font-size:11px;color:var(--text2)">${ngo.focus}</div>
-          <div style="font-size:10px;color:var(--text3)">📍 ${ngo.address} · <span style="color:var(--accent)">${ngo.distance_km} km away</span></div>
-        </div>
-      </div>
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        <a href="mailto:${ngo.contact}" style="font-size:11px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.25);padding:5px 10px;border-radius:6px;background:rgba(79,126,248,0.07);">📧</a>
-        <a href="tel:${ngo.phone}" style="font-size:11px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.25);padding:5px 10px;border-radius:6px;background:rgba(31,209,138,0.07);">📞</a>
-      </div>
+function showNgoStrip(ngos){
+  document.getElementById('ngo-strip-list').innerHTML=ngos.map(n=>`
+    <div class="ngo-strip-card">
+      <span style="font-size:18px">${n.icon||'🏛️'}</span>
+      <div style="flex:1;min-width:0"><div class="ngo-strip-name">${n.name}</div><div class="ngo-strip-dist">${n.distance_km} km · ${n.focus}</div></div>
+      <div class="ngo-strip-btns"><a href="tel:${n.phone}" class="ngo-strip-btn call">📞</a><a href="mailto:${n.email}" class="ngo-strip-btn email">📧</a></div>
     </div>`).join('');
-  document.getElementById('ngo-popup').style.display = 'flex';
-  document.getElementById('ngo-popup-overlay').style.display = 'block';
+  document.getElementById('ngo-strip').classList.add('open');
 }
 
-function closeNGOPopup() {
-  document.getElementById('ngo-popup').style.display = 'none';
-  document.getElementById('ngo-popup-overlay').style.display = 'none';
-  showToast('✔ Issue resolved · +20 pts 🎉');
+function showNgoPopup(ngos){
+  document.getElementById('ngo-popup-list').innerHTML=ngos.map(n=>`
+    <div class="ngo-popup-card"><div class="ngo-popup-card-left"><span style="font-size:20px">${n.icon||'🏛️'}</span><div><div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text)">${n.name}</div><div style="font-size:11px;color:var(--text2)">${n.focus}</div><div style="font-size:10px;color:var(--text3)">📍 ${n.address||''} · <span style="color:var(--accent)">${n.distance_km} km away</span></div></div></div><div style="display:flex;gap:5px;flex-shrink:0"><a href="tel:${n.phone}" style="font-size:11px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.25);padding:5px 9px;border-radius:6px;background:rgba(31,209,138,0.07)">📞</a><a href="mailto:${n.email}" style="font-size:11px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.25);padding:5px 9px;border-radius:6px;background:rgba(79,126,248,0.07)">📧</a></div></div>`).join('');
+  document.getElementById('ngo-popup').style.display='flex';document.getElementById('ngo-popup-overlay').style.display='block';
 }
+function closeNgoPopup(){document.getElementById('ngo-popup').style.display='none';document.getElementById('ngo-popup-overlay').style.display='none';toast('✔ Issue resolved · +20 pts 🎉');}
 
-async function loadAll() { loadIssues(); loadMap(); }
+const getUser=()=>document.getElementById('user').value.trim()||'anonymous';
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadAreas();
-  loadAll();
-  document.getElementById('desc').addEventListener('keydown', e => { if (e.key === 'Enter') submitIssue(); });
-  document.getElementById('user').addEventListener('blur', e => {
-    if (e.target.value.trim()) updatePointsBadge(e.target.value.trim());
-  });
+async function doUpvote(id){await fetch('/upvote/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:getUser()})});toast('⬆ +2 pts');loadAll();updatePts(getUser());}
+function doVerify(id){const pwd=prompt('🔒 Admin password:');if(pwd===null)return;fetch('/verify/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:getUser(),admin_password:pwd})}).then(r=>r.json()).then(d=>{if(d.error)toast(d.error,'error');else{toast('✓ Verified · +5 pts');loadAll();updatePts(getUser());}});}
+async function doResolve(id){const res=await fetch('/resolve/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:getUser()})});const d=await res.json();loadAll();updatePts(getUser());if(d.nearby_ngos&&d.nearby_ngos.length)showNgoPopup(d.nearby_ngos);else toast('✔ Resolved · +20 pts 🎉');}
+async function doEscalate(id){await fetch('/ngo/escalate/'+id,{method:'POST',headers:{'Content-Type':'application/json'}});toast('↑ Escalated to NGO','ngo');loadAll();}
+
+async function loadAll(){loadIssues();loadMap();}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  loadAreas();loadAll();
+  document.getElementById('desc').addEventListener('keydown',e=>{if(e.key==='Enter')submitIssue();});
+  document.getElementById('user').addEventListener('blur',e=>{if(e.target.value.trim()){document.getElementById('nav-user-display').textContent=e.target.value.trim();updatePts(e.target.value.trim());}});
 });
 </script>
 </body>

@@ -1,13 +1,13 @@
 KEYWORDS = {
-    'pothole':     ['pothole','road','crater','hole','bump','broken road','khada','damaged road','manhole cover'],
-    'water':       ['water','leak','pipe','flood','waterlog','pani','overflow','pipeline','burst','puddle'],
-    'garbage':     ['garbage','waste','trash','kachra','dump','litter','smell','refuse','filth','bin','burning'],
-    'streetlight': ['streetlight','street light','lamp post','dark street','batti','light pole'],
-    'traffic':     ['traffic','signal','jam','congestion','accident','zebra crossing','speed breaker'],
-    'noise':       ['noise','sound','loud','speaker','music','construction','drilling','awaz','loudspeaker'],
-    'sewage':      ['sewage','sewer','drain','blocked drain','stink','nali','naali','open drain'],
-    'electricity': ['power cut','electric','current','wire','transformer','outage','bijli','no electricity','shock'],
-    'tree':        ['tree','branch','fallen tree','blocking tree','ped','park','garden'],
+    'pothole':     ['pothole','crater','hole in road','bump','broken road','khada','damaged road','road damage'],
+    'water':       ['water','leak','pipe','flood','waterlog','pani','overflow','pipeline','burst pipe','no water','puddle'],
+    'garbage':     ['garbage','waste','trash','kachra','dump','litter','filth','burning waste','stray dog','rats','rodent'],
+    'streetlight': ['streetlight','street light','lamp post','dark street','batti','light pole','no light','light not working'],
+    'traffic':     ['traffic','signal','jam','congestion','accident','zebra crossing','speed breaker','traffic light'],
+    'noise':       ['noise','sound','loud','speaker','music','construction noise','drilling','awaz','loudspeaker','late night'],
+    'sewage':      ['sewage','sewer','drain','blocked drain','stink','nali','naali','open drain','manhole'],
+    'electricity': ['power cut','electric','current','wire','transformer','outage','bijli','no electricity','power failure','sparking'],
+    'tree':        ['tree','branch','fallen tree','blocking tree','ped','uprooted'],
 }
 
 def auto_tag(desc: str) -> str:
