@@ -247,6 +247,7 @@ def redeem():
     row = db.execute('SELECT points FROM users WHERE name=?',(user,)).fetchone()
     if not row: db.close(); return jsonify({'error':'User not found. Report issues first!'}), 404
     if row['points'] < reward['points']:
+        
         db.close(); return jsonify({'error':f"Need {reward['points']} pts, you have {row['points']}"}), 400
     db.execute('UPDATE users SET points=points-? WHERE name=?',(reward['points'],user)); db.commit()
     remaining = db.execute('SELECT points FROM users WHERE name=?',(user,)).fetchone()['points']
