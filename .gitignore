@@ -1,9 +1,35 @@
+# Virtual environment
 .venv/
 venv/
-__pycache__/
-*.pyc
-areapulse.db
+env/
+
+# Executable and batch files
 *.exe
 *.bat
-*.ps1
 Activate.ps1
+activate
+deactivate
+
+# Database
+*.db
+
+# VS Code
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Distribution
+dist/
+build/
+*.egg-info/
