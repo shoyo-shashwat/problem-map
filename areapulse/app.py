@@ -7,6 +7,7 @@ from database import (
 )
 from classifier import auto_tag
 import math, time, base64, os
+import psycopg2.extras
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
@@ -151,7 +152,9 @@ def issues():
 @app.route('/map-data')
 def map_data():
     db = get_db()
-    rows = db.execute('SELECT area, COUNT(*) as cnt FROM issues GROUP BY area').fetchall()
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute('SELECT area, COUNT(*) as cnt FROM issues GROUP BY area')
+    rows = cur.fetchall()
     db.close()
     result = []
     for row in rows:
@@ -165,7 +168,9 @@ def map_data():
 @app.route('/leaderboard')
 def leaderboard():
     db = get_db()
-    rows = db.execute('SELECT name, points FROM users ORDER BY points DESC LIMIT 10').fetchall()
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute('SELECT name, points FROM users ORDER BY points DESC LIMIT 10')
+    rows = cur.fetchall()
     db.close()
     result = []
     for i,r in enumerate(rows):
@@ -194,13 +199,15 @@ def resolve(id):
     user = d.get('user','anonymous')
     resolve_issue(id); add_points(user,20)
     db = get_db()
-    issue = db.execute('SELECT * FROM issues WHERE id=?',(id,)).fetchone()
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute('SELECT * FROM issues WHERE id=%s',(id,))
+    issue = cur.fetchone()
     db.close()
     nearby = []
     if issue:
-        lat = issue['lat'] or AREA_COORDS.get(issue['area'],[28.6139,77.2090])[0]
-        lng = issue['lng'] or AREA_COORDS.get(issue['area'],[28.6139,77.2090])[1]
-        nearby = get_nearby_ngos(lat, lng, tag=issue['tag'], limit=4)
+        lat = issue.get('lat') or AREA_COORDS.get(issue.get('area'),[28.6139,77.2090])[0]
+        lng = issue.get('lng') or AREA_COORDS.get(issue.get('area'),[28.6139,77.2090])[1]
+        nearby = get_nearby_ngos(lat, lng, tag=issue.get('tag'), limit=4)
     return jsonify({'status':'resolved','points_earned':20,'nearby_ngos':nearby})
 
 @app.route('/ngo/all')
@@ -220,9 +227,12 @@ def ngo_nearby():
 @app.route('/ngo/escalate/<int:id>', methods=['POST'])
 def ngo_escalate(id):
     db = get_db()
-    issue = db.execute('SELECT * FROM issues WHERE id=?',(id,)).fetchone()
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute('SELECT * FROM issues WHERE id=%s',(id,))
+    issue = cur.fetchone()
     if not issue: db.close(); return jsonify({'error':'Not found'}),404
-    db.execute("UPDATE issues SET status='escalated' WHERE id=?",(id,))
+    cur2 = db.cursor()
+    cur2.execute("UPDATE issues SET status='escalated' WHERE id=%s",(id,))
     db.commit(); db.close()
     return jsonify({'status':'escalated'})
 
@@ -244,13 +254,17 @@ def redeem():
     reward = next((r for r in REWARDS if r['id']==rid), None)
     if not reward: return jsonify({'error':'Reward not found'}), 404
     db = get_db()
-    row = db.execute('SELECT points FROM users WHERE name=?',(user,)).fetchone()
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute('SELECT points FROM users WHERE name=%s',(user,))
+    row = cur.fetchone()
     if not row: db.close(); return jsonify({'error':'User not found. Report issues first!'}), 404
     if row['points'] < reward['points']:
-        
         db.close(); return jsonify({'error':f"Need {reward['points']} pts, you have {row['points']}"}), 400
-    db.execute('UPDATE users SET points=points-? WHERE name=?',(reward['points'],user)); db.commit()
-    remaining = db.execute('SELECT points FROM users WHERE name=?',(user,)).fetchone()['points']
+    cur2 = db.cursor()
+    cur2.execute('UPDATE users SET points=points-%s WHERE name=%s',(reward['points'],user))
+    db.commit()
+    cur.execute('SELECT points FROM users WHERE name=%s',(user,))
+    remaining = cur.fetchone()['points']
     db.close()
     return jsonify({'status':'redeemed','reward':reward,'remaining_points':remaining})
 
@@ -259,7 +273,9 @@ def user_points():
     name = request.args.get('name','').strip()
     if not name: return jsonify({'points':0})
     db = get_db()
-    row = db.execute('SELECT points FROM users WHERE name=?',(name,)).fetchone()
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute('SELECT points FROM users WHERE name=%s',(name,))
+    row = cur.fetchone()
     db.close()
     return jsonify({'points': row['points'] if row else 0})
 
