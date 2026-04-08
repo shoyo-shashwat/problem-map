@@ -7,3 +7,6 @@ areapulse.db
 *.bat
 *.ps1
 Activate.ps1
+*.db
+activate
+.vscode/
