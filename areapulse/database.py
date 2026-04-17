@@ -1,9 +1,13 @@
 import psycopg2, psycopg2.extras, time, os, math
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
-
 def get_db():
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = psycopg2.connect(
+        host=os.environ.get('DB_HOST', 'localhost'),
+        database=os.environ.get('DB_NAME', 'areapulse'),
+        user=os.environ.get('DB_USER', 'postgres'),
+        password=os.environ.get('DB_PASSWORD', 'garv@2025'),
+        port=os.environ.get('DB_PORT', '5432')
+    )
     conn.autocommit = False
     return conn
 
@@ -24,8 +28,14 @@ def init_db():
         priority REAL DEFAULT 0.0, verified INTEGER DEFAULT 0,
         status TEXT DEFAULT 'open', "user" TEXT,
         lat REAL, lng REAL, image TEXT,
-        severity TEXT DEFAULT 'medium', landmark TEXT, contact TEXT
+        severity TEXT DEFAULT 'medium', landmark TEXT, contact TEXT,
+        assigned_to TEXT DEFAULT NULL
     )''')
+    # Add assigned_to column if it doesn't exist (for existing databases)
+    try:
+        cur.execute("ALTER TABLE issues ADD COLUMN IF NOT EXISTS assigned_to TEXT DEFAULT NULL")
+    except Exception:
+        pass
     cur.execute('''CREATE TABLE IF NOT EXISTS ngos (
         id SERIAL PRIMARY KEY,
         name TEXT, tag TEXT, phone TEXT, email TEXT,
@@ -126,90 +136,39 @@ def seed_real_issues():
     if cur.fetchone()['cnt'] > 0:
         db.close(); return
     seeds = [
-        ('Rohini','Massive pothole on Sector 3 road near D-Mall causing daily accidents','pothole','Arav Sharma','open',14,28.7041,77.1025,'high'),
-        ('Rohini','Sewage overflowing near Sector 7 market for 4 days, unbearable stench','sewage','Meena Devi','open',11,28.7055,77.1040,'high'),
-        ('Rohini','Streetlight dead in Sector 11 for 3 weeks, women feel unsafe walking','streetlight','Rahul Gupta','open',18,28.7080,77.1060,'medium'),
-        ('Rohini','Garbage bins overflowing Sector 16, not collected for 5 days, rats visible','garbage','Sneha Kapoor','open',9,28.7020,77.1010,'medium'),
-        ('Rohini','Water pipe burst near Sector 2 flooding 3 lanes since morning','water','Dhruv Rathi','verified',22,28.7045,77.1015,'high'),
-        ('Rohini','Traffic signal broken at Sector 9 chowk, causing peak hour jams','traffic','Ananya Singh','open',7,28.7055,77.1035,'medium'),
-        ('Rohini','Open electrical wires hanging dangerously near Sector 6 park','electricity','Neha Agarwal','open',31,28.7035,77.1045,'high'),
-        ('Rohini','Construction noise from illegal building site past midnight daily','noise','Pooja Singh','open',6,28.7090,77.1055,'medium'),
-        ('Rohini','Fallen tree blocking Rohini West road since storm, bus diverted','tree','Karan Malhotra','resolved',11,28.7065,77.1065,'medium'),
-        ('Uttam Nagar','Deep pothole 60cm on Uttam Nagar West road, bus got stuck','pothole','Sachin Tyagi','open',41,28.6219,77.0560,'high'),
-        ('Uttam Nagar','Blocked drain near metro causing severe waterlogging for 3 days','sewage','Pooja Yadav','open',19,28.6230,77.0570,'high'),
-        ('Uttam Nagar','No streetlights in C-block sector, residents use torch to walk','streetlight','Amit Joshi','open',14,28.6210,77.0550,'high'),
-        ('Uttam Nagar','Water supply cut for 48 hours in B block, buying expensive tankers','water','Sunita Rawat','verified',26,28.6215,77.0555,'high'),
-        ('Uttam Nagar','Power outage 3-4 hours daily, inverters draining, equipment damaged','electricity','Rohit Pandey','open',17,28.6220,77.0565,'medium'),
-        ('Uttam Nagar','Traffic signal broken at main chowk, accident happened yesterday','traffic','Meera Nair','escalated',22,28.6235,77.0575,'high'),
-        ('Uttam Nagar','Illegal construction waste dumped on main road blocking lane','garbage','Suresh Kumar','open',8,28.6225,77.0545,'medium'),
-        ('Uttam Nagar','Aggressive stray dogs near school, 2 children bitten this week','garbage','Kavita Sharma','open',35,28.6205,77.0535,'high'),
-        ('Shahdara','Illegal burning of garbage near drain, toxic fumes at night','garbage','Harish Negi','open',28,28.6706,77.2944,'high'),
-        ('Shahdara','Open manhole near metro exit — cyclist fell in last week','sewage','Tina Bhatia','open',33,28.6715,77.2955,'high'),
-        ('Shahdara','Pothole filled with water near flyover, motorcyclist fell','pothole','Rajan Sood','open',21,28.6695,77.2935,'high'),
-        ('Shahdara','Water pipeline leaking at market road for 1 week','water','Geeta Sharma','open',16,28.6725,77.2965,'medium'),
-        ('Shahdara','Loud DJ music from venue past 1am every weekend','noise','Anil Kapoor','open',9,28.6700,77.2950,'medium'),
-        ('Dwarka','Streetlight at Sector 12 bus stop dark 2 weeks, women unsafe','streetlight','Mohan Das','open',22,28.5921,77.0460,'medium'),
-        ('Dwarka','Sewage overflow near Sector 6 market causing diseases','sewage','Lalita Rani','verified',18,28.5930,77.0480,'high'),
-        ('Dwarka','Pothole near school Sector 10, student fell from cycle','pothole','Vinod Kumar','open',12,28.5910,77.0450,'medium'),
-        ('Dwarka','Power fluctuation in Sector 23 damaging electronics','electricity','Suman Bose','open',8,28.5940,77.0490,'medium'),
-        ('Dwarka','Garbage collection not happening Sector 18 pocket B for 4 days','garbage','Ramesh Garg','open',6,28.5915,77.0470,'medium'),
-        ('Lajpat Nagar','Garbage overflowing near Central Market 4 days, rodents visible','garbage','Sneha Kapoor','open',18,28.5677,77.2378,'medium'),
-        ('Lajpat Nagar','Waterlogging at Ring Road junction after every rain','water','Pankaj Gupta','verified',20,28.5665,77.2365,'medium'),
-        ('Lajpat Nagar','Broken footpath with exposed iron rods near park, elderly fell','pothole','Renu Sharma','open',14,28.5685,77.2390,'medium'),
-        ('Chandni Chowk','Water pipe burst near Fatehpuri Masjid, flooding lanes and shops','water','Vikram Sethi','escalated',31,28.6506,77.2303,'high'),
-        ('Chandni Chowk','Electric wire sparking near metro station gate','electricity','Manish Goyal','verified',39,28.6500,77.2295,'high'),
-        ('Chandni Chowk','Garbage dump near Kinari Bazar for 3 days, foul smell','garbage','Sunil Jain','open',13,28.6515,77.2315,'medium'),
-        ('Karol Bagh','Sewage overflow on Arya Samaj Road, foul smell 3 days','sewage','Priya Mehta','verified',9,28.6514,77.1907,'high'),
-        ('Saket','Open manhole Press Enclave Road near Select Citywalk','sewage','Neha Agarwal','open',25,28.5244,77.2090,'high'),
-        ('Vasant Kunj','Broken water pipeline B9 DDA Flats, no water for 2 days','water','Karan Malhotra','verified',16,28.5200,77.1590,'medium'),
-        ('Mayur Vihar','Traffic signal Phase 1 metro broken 5 days, near-miss accidents','traffic','Amit Joshi','open',13,28.6090,77.2944,'medium'),
-        ('Janakpuri','Power cuts Block C, 4-6 hours daily','electricity','Sunita Rawat','open',8,28.6219,77.0878,'medium'),
-        ('Laxmi Nagar','Pothole with rainwater near metro, motorcyclist fell','pothole','Rohit Pandey','open',19,28.6310,77.2780,'high'),
-        ('Hauz Khas','Loudspeakers at Hauz Khas Village events till 2am nightly','noise','Meera Nair','open',6,28.5494,77.2001,'medium'),
-        ('Model Town','Broken footpath exposed iron rods near park, wrist fracture','pothole','Kavita Sharma','verified',12,28.7167,77.1900,'medium'),
-        ('Geeta Colony','Open electrical wires over road near flyover','electricity','Rajan Sood','open',34,28.6590,77.2780,'high'),
-        ('Malviya Nagar','Waterlogging in market after every rain, drain blocked','water','Tina Bhatia','open',17,28.5355,77.2068,'medium'),
-        ('Burari','Garbage truck not coming 6 days, residents burning waste','garbage','Harish Negi','open',23,28.7470,77.2100,'medium'),
-        ('Okhla','Toxic smoke from burning garbage near Okhla Bird Sanctuary','garbage','Geeta Sharma','escalated',45,28.5355,77.2780,'high'),
-        ('Nangloi','No water supply Sector 5 for 72 hours','water','Anil Kapoor','open',38,28.6706,77.0590,'high'),
-        ('Seelampur','Broken road near metro, 4 accidents in 1 week','pothole','Mohan Das','open',27,28.6706,77.3012,'high'),
-        ('Mustafabad','Drain overflow near crossing, sewage entering homes','sewage','Lalita Rani','open',16,28.7167,77.3012,'medium'),
-        ('Sangam Vihar','No electricity Block J 18 hours, elderly suffering in heat','electricity','Vinod Kumar','open',22,28.5022,77.2590,'high'),
-        ('Rajouri Garden','Stray dogs near metro, 3 bite incidents this week','garbage','Suresh Kumar','open',29,28.6447,77.1220,'high'),
-        ('Pitampura','Fallen tree blocking Pitampura Main Road after storm','tree','Deepak Verma','resolved',11,28.7007,77.1311,'medium'),
-        ('Connaught Place','Construction noise Palika Bazaar basement at midnight','noise','Ananya Singh','open',7,28.6315,77.2167,'medium'),
+        ('Rohini','Massive pothole on Sector 3 road near D-Mall causing daily accidents','pothole','system_seed','open',14,28.7041,77.1025,'high',None),
+        ('Rohini','Sewage overflowing near Sector 7 market for 4 days, unbearable stench','sewage','system_seed','open',11,28.7055,77.1040,'high',None),
+        ('Rohini','Streetlight dead in Sector 11 for 3 weeks, women feel unsafe walking','streetlight','system_seed','open',18,28.7080,77.1060,'medium',None),
+        ('Rohini','Garbage bins overflowing Sector 16, not collected for 5 days, rats visible','garbage','system_seed','open',9,28.7020,77.1010,'medium',None),
+        ('Dwarka','Deep crater on Main Road Sector 12 near petrol pump, 2 accidents already','pothole','system_seed','open',21,28.5921,77.0460,'high',None),
+        ('Dwarka','Water pipeline burst near Sector 6 park, road waterlogged for 2 days','water','system_seed','open',15,28.5900,77.0500,'high',None),
+        ('Dwarka','Multiple streetlights out on Dwarka Mor flyover approach, very dark at night','streetlight','system_seed','open',12,28.6120,77.0590,'medium',None),
+        ('Lajpat Nagar','Garbage dumped behind Central Market not cleared for a week, stray dogs','garbage','system_seed','open',8,28.5677,77.2378,'medium',None),
+        ('Lajpat Nagar','Open drain near Ring Road overflowing, mosquito breeding ground forming','sewage','system_seed','open',16,28.5690,77.2350,'high',None),
+        ('Connaught Place','Broken footpath tiles causing elderly pedestrians to trip and fall near N Block','pothole','system_seed','open',19,28.6315,77.2167,'medium',None),
+        ('Connaught Place','Traffic signal malfunction at Barakhamba Road crossing since Tuesday evening','traffic','system_seed','open',24,28.6330,77.2200,'high',None),
+        ('Karol Bagh','Power cut lasting 8+ hours daily in Arya Samaj Road area, transformer issue','electricity','system_seed','open',13,28.6514,77.1907,'high',None),
+        ('Saket','Fallen tree blocking half of Press Enclave Road near Select Citywalk entrance','tree','system_seed','open',7,28.5244,77.2090,'high',None),
+        ('Mayur Vihar','Loud construction noise past midnight near Phase 1 extension, residents awake','noise','system_seed','open',6,28.6090,77.2944,'medium',None),
+        ('Shahdara','Overflowing sewer near Vivek Vihar bus stop, smell unbearable','sewage','system_seed','open',22,28.6706,77.2944,'high',None),
     ]
     cur2 = db.cursor()
-    ts = time.time()
+    t = time.time()
     for i, s in enumerate(seeds):
-        area, desc, tag, user, status, upvotes, lat, lng, severity = s
+        area, desc, tag, user, status, upvotes, lat, lng, severity, assigned_to = s
         cur2.execute(
-            'INSERT INTO issues (area,description,tag,timestamp,upvotes,status,"user",lat,lng,severity) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-            (area, desc, tag, ts-(len(seeds)-i)*1800, upvotes, status, user, lat, lng, severity)
+            'INSERT INTO issues (area,description,tag,"user",status,upvotes,lat,lng,timestamp,severity,assigned_to) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            (area, desc, tag, user, status, upvotes, lat, lng, t - i * 3600, severity, assigned_to)
         )
-        cur2.execute('INSERT INTO users (name,points) VALUES (%s,%s) ON CONFLICT (name) DO NOTHING', (user, upvotes*2+10))
-    for name, pts in [('Delhi Civic Watch',520),('NGO Volunteer',240),('RWA Delhi',185),('SafeStreets India',310)]:
-        cur2.execute('INSERT INTO users (name,points) VALUES (%s,%s) ON CONFLICT (name) DO NOTHING', (name, pts))
-    posts = [
-        ('Arav Sharma','Rohini Sector 3 pothole finally fixed after 2 weeks! Thanks to Road Safety Network 🎉','Rohini',time.time()-3600,12,'success'),
-        ('Priya Mehta','Sewage on Arya Samaj Road getting worse. Please upvote so authorities notice!','Karol Bagh',time.time()-7200,8,'alert'),
-        ('Delhi Civic Watch','Monsoon = potholes everywhere. Report early so MCD fixes before they get dangerous.','Connaught Place',time.time()-18000,23,'tip'),
-        ('Neha Agarwal','Just reported open manhole near Saket metro. Please be careful in that area!','Saket',time.time()-28800,15,'alert'),
-        ('RWA Delhi','Community clean-up drive in Rohini Sector 9 this Sunday 8AM. Join us!','Rohini',time.time()-43200,31,'event'),
-        ('Vikram Sethi','Chandni Chowk water pipe burst escalated to Delhi Jal Board. Resolution expected 24hrs.','Chandni Chowk',time.time()-54000,19,'update'),
-        ('Kavita Sharma','Pro tip: always add a landmark — helps NGO find exact location faster!','Model Town',time.time()-86400,27,'tip'),
-        ('Harish Negi','Burari garbage truck came after escalating to Safai Sena! The system works.','Burari',time.time()-108000,14,'success'),
-    ]
-    for p in posts:
-        cur2.execute('INSERT INTO community_posts ("user",message,area,timestamp,likes,post_type) VALUES (%s,%s,%s,%s,%s,%s)', p)
     db.commit(); db.close()
 
-def insert_issue(area, description, tag, user, lat=None, lng=None, image=None, severity='medium', landmark=None, contact=None):
+def insert_issue(area, description, tag, user, lat=None, lng=None, image=None,
+                 severity='medium', landmark=None, contact=None, assigned_to=None):
     db = get_db()
     cur = db.cursor()
     cur.execute(
-        'INSERT INTO issues (area,description,tag,timestamp,"user",status,lat,lng,image,severity,landmark,contact) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-        (area, description, tag, time.time(), user, 'open', lat, lng, image, severity, landmark, contact)
+        'INSERT INTO issues (area,description,tag,timestamp,"user",status,lat,lng,image,severity,landmark,contact,assigned_to) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+        (area, description, tag, time.time(), user, 'open', lat, lng, image, severity, landmark, contact, assigned_to)
     )
     db.commit(); db.close()
 
@@ -217,6 +176,14 @@ def get_issues():
     db = get_db()
     cur = _cur(db)
     cur.execute('SELECT * FROM issues ORDER BY priority DESC, timestamp DESC')
+    rows = cur.fetchall()
+    db.close()
+    return [dict(r) for r in rows]
+
+def get_issues_by_user(username):
+    db = get_db()
+    cur = _cur(db)
+    cur.execute('SELECT * FROM issues WHERE "user"=%s ORDER BY timestamp DESC', (username,))
     rows = cur.fetchall()
     db.close()
     return [dict(r) for r in rows]
@@ -229,8 +196,8 @@ def upvote_issue(issue_id):
     cur2.execute('SELECT upvotes, timestamp FROM issues WHERE id=%s', (issue_id,))
     row = cur2.fetchone()
     if row:
-        age = max((time.time()-row['timestamp'])/3600, 1)
-        cur.execute('UPDATE issues SET priority=%s WHERE id=%s', (round(row['upvotes']/age, 2), issue_id))
+        age = max((time.time() - row['timestamp']) / 3600, 1)
+        cur.execute('UPDATE issues SET priority=%s WHERE id=%s', (round(row['upvotes'] / age, 2), issue_id))
     db.commit(); db.close()
 
 def verify_issue(issue_id):
@@ -239,10 +206,22 @@ def verify_issue(issue_id):
     cur.execute("UPDATE issues SET verified=verified+1, status='verified' WHERE id=%s", (issue_id,))
     db.commit(); db.close()
 
-def resolve_issue(issue_id):
+def resolve_issue(issue_id, assigned_to=None):
     db = get_db()
     cur = db.cursor()
-    cur.execute("UPDATE issues SET status='resolved' WHERE id=%s", (issue_id,))
+    if assigned_to:
+        cur.execute("UPDATE issues SET status='resolved', assigned_to=%s WHERE id=%s", (assigned_to, issue_id))
+    else:
+        cur.execute("UPDATE issues SET status='resolved' WHERE id=%s", (issue_id,))
+    db.commit(); db.close()
+
+def escalate_issue(issue_id, assigned_to=None):
+    db = get_db()
+    cur = db.cursor()
+    if assigned_to:
+        cur.execute("UPDATE issues SET status='escalated', assigned_to=%s WHERE id=%s", (assigned_to, issue_id))
+    else:
+        cur.execute("UPDATE issues SET status='escalated' WHERE id=%s", (issue_id,))
     db.commit(); db.close()
 
 def add_points(user, pts):
@@ -254,6 +233,19 @@ def add_points(user, pts):
         (user, pts, pts)
     )
     db.commit(); db.close()
+
+def get_user_stats(username):
+    db = get_db()
+    cur = _cur(db)
+    cur.execute('SELECT points FROM users WHERE name=%s', (username,))
+    row = cur.fetchone()
+    points = row['points'] if row else 0
+    cur.execute('SELECT COUNT(*) as cnt FROM issues WHERE "user"=%s', (username,))
+    total = cur.fetchone()['cnt']
+    cur.execute("SELECT COUNT(*) as cnt FROM issues WHERE \"user\"=%s AND status='resolved'", (username,))
+    resolved = cur.fetchone()['cnt']
+    db.close()
+    return {'points': points, 'total_reported': total, 'total_resolved': resolved}
 
 def get_ngos(tag_filter=None, area_filter=None, sort_by='resolved'):
     db = get_db()
@@ -295,8 +287,8 @@ def get_nearby_ngos(lat, lng, tag=None, limit=5):
     ngos = []
     for r in rows:
         n = dict(r)
-        d = math.sqrt((lat-n['lat'])**2+(lng-n['lng'])**2)
-        n['distance_km'] = round(d*111, 1)
+        d = math.sqrt((lat - n['lat']) ** 2 + (lng - n['lng']) ** 2)
+        n['distance_km'] = round(d * 111, 1)
         ngos.append(n)
     ngos.sort(key=lambda x: x['distance_km'])
     return ngos[:limit]
@@ -328,7 +320,7 @@ def like_post(post_id, user):
         cur.execute('INSERT INTO community_likes (user_name,post_id) VALUES (%s,%s)', (user, post_id))
         cur.execute('UPDATE community_posts SET likes=likes+1 WHERE id=%s', (post_id,))
         db.commit(); result = True
-    except:
+    except Exception:
         db.rollback(); result = False
     db.close()
     return result

@@ -1,107 +1,284 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Issues — AreaPulse</title>
-<link rel="preconnect" href="https://api.fontshare.com">
-<link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=cabinet-grotesk@300,400,500,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-<nav class="navbar">
-  <div class="nav-brand"><div class="brand-dot"></div><span class="brand-name">AreaPulse</span><span class="brand-tag">Delhi</span></div>
-  <div class="nav-center">
-    <a href="/" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Live Map</a>
-    <a href="/issues-page" class="nav-link active"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Issues</a>
-    <a href="/leaderboard-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Leaderboard</a>
-    <a href="/ngo-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>NGOs</a>
-    <a href="/community-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Community</a>
-    <a href="/redeem-page" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Redeem</a>
-  </div>
-  <div class="nav-right"><div class="live-badge"><span class="live-dot"></span>Live</div></div>
-</nav>
+{% extends "base.html" %}
+{% block title %}All Issues — Problem Map{% endblock %}
+{% block extra_head %}
+<style>
+  .issues-layout {
+    display: flex; height: calc(100vh - var(--nav-h)); overflow: hidden;
+  }
+  .issues-sidebar {
+    width: 280px; flex-shrink: 0; background: var(--surface);
+    border-right: 1px solid var(--border); padding: 20px;
+    overflow-y: auto;
+  }
+  .issues-main { flex: 1; overflow-y: auto; padding: 24px; }
+  .issues-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
 
-<div class="page-container">
-  <div class="page-hero">
-    <div><h1 class="page-title">All <span>Issues</span></h1><p class="page-subtitle">Browse, verify, and escalate civic problems reported across Delhi · Admin password: admin123</p></div>
-    <div class="filter-bar">
-      <select id="fa" onchange="applyF()"><option value="">All Areas</option></select>
-      <select id="ft" onchange="applyF()"><option value="">All Tags</option><option>pothole</option><option>water</option><option>garbage</option><option>streetlight</option><option>traffic</option><option>noise</option><option>sewage</option><option>electricity</option><option>tree</option></select>
-      <select id="fs" onchange="applyF()"><option value="">All Status</option><option value="open">Open</option><option value="verified">Verified</option><option value="resolved">Resolved</option><option value="escalated">Escalated</option></select>
-      <div class="search-wrap"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="fq" type="text" placeholder="Search..." oninput="applyF()"></div>
+  .filter-group { margin-bottom: 20px; }
+  .filter-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); margin-bottom: 8px; }
+  .filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface); cursor: pointer;
+    transition: all 0.15s; color: var(--text2);
+  }
+  .chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .chip:hover:not(.active) { background: var(--surface2); }
+
+  .issue-full-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; transition: all 0.15s; cursor: pointer;
+  }
+  .issue-full-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+  .issue-full-card-img { width: 100%; height: 140px; object-fit: cover; border-radius: 6px; margin-bottom: 12px; }
+  .issue-desc { font-size: 13.5px; line-height: 1.5; margin: 10px 0; }
+  .issue-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+
+  .status-bar {
+    display: flex; gap: 6px; margin-bottom: 20px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px; flex-wrap: wrap;
+  }
+  .status-count { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .search-wrap { position: relative; margin-bottom: 20px; }
+  .search-wrap input { padding-left: 34px; }
+  .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text3); pointer-events: none; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="issues-layout">
+
+  <!-- Filter Sidebar -->
+  <aside class="issues-sidebar">
+    <div style="font-family:'DM Serif Display',serif; font-size:17px; margin-bottom:20px">Filters</div>
+
+    <div class="filter-group">
+      <div class="filter-label">Category</div>
+      <div class="filter-chips" id="tag-chips">
+        <div class="chip active" data-val="" onclick="setTag(this, '')">All</div>
+        <div class="chip" data-val="pothole" onclick="setTag(this,'pothole')">Pothole</div>
+        <div class="chip" data-val="water" onclick="setTag(this,'water')">Water</div>
+        <div class="chip" data-val="garbage" onclick="setTag(this,'garbage')">Garbage</div>
+        <div class="chip" data-val="streetlight" onclick="setTag(this,'streetlight')">Streetlight</div>
+        <div class="chip" data-val="traffic" onclick="setTag(this,'traffic')">Traffic</div>
+        <div class="chip" data-val="noise" onclick="setTag(this,'noise')">Noise</div>
+        <div class="chip" data-val="sewage" onclick="setTag(this,'sewage')">Sewage</div>
+        <div class="chip" data-val="electricity" onclick="setTag(this,'electricity')">Electricity</div>
+        <div class="chip" data-val="tree" onclick="setTag(this,'tree')">Tree</div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Status</div>
+      <div class="filter-chips" id="status-chips">
+        <div class="chip active" data-val="" onclick="setStatus(this,'')">All</div>
+        <div class="chip" data-val="open" onclick="setStatus(this,'open')">Open</div>
+        <div class="chip" data-val="resolved" onclick="setStatus(this,'resolved')">Resolved</div>
+        <div class="chip" data-val="escalated" onclick="setStatus(this,'escalated')">Escalated</div>
+        <div class="chip" data-val="verified" onclick="setStatus(this,'verified')">Verified</div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Severity</div>
+      <div class="filter-chips" id="sev-chips">
+        <div class="chip active" data-val="" onclick="setSev(this,'')">All</div>
+        <div class="chip" data-val="high" onclick="setSev(this,'high')">High</div>
+        <div class="chip" data-val="medium" onclick="setSev(this,'medium')">Medium</div>
+        <div class="chip" data-val="low" onclick="setSev(this,'low')">Low</div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Sort by</div>
+      <select id="sort-by" onchange="loadIssues()" style="font-size:13px">
+        <option value="newest">Newest First</option>
+        <option value="upvotes">Most Upvoted</option>
+        <option value="priority">Priority</option>
+      </select>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="issues-main">
+    <div class="flex items-center justify-between mb-16">
+      <div>
+        <div class="section-title">All Issues</div>
+        <div class="section-sub" id="issues-count">Loading…</div>
+      </div>
+      <a href="/" class="btn btn-primary btn-sm">+ Report Issue</a>
+    </div>
+
+    <!-- Status summary bar -->
+    <div class="status-bar" id="status-bar"></div>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input id="search-input" type="text" placeholder="Search by description, area, category…" oninput="debounceSearch()"/>
+    </div>
+
+    <!-- Grid -->
+    <div class="issues-grid" id="issues-grid">
+      <div style="grid-column:1/-1; text-align:center; padding:40px">
+        <div class="spinner" style="margin:0 auto 10px"></div>
+        <div class="text-muted">Loading issues…</div>
+      </div>
     </div>
   </div>
-  <div id="summary" class="issues-summary"></div>
-  <div class="issues-grid" id="grid"><div class="loading-state"><div class="spinner"></div><p>Fetching issues...</p></div></div>
 </div>
 
-<div id="toast" class="toast"></div>
-<div id="ngo-popup" class="ngo-popup" style="display:none"><div class="ngo-popup-inner"><div class="ngo-popup-header"><div><div class="ngo-popup-title">🎉 Issue Resolved! +20 pts</div><div class="ngo-popup-sub">Nearby NGOs that can help:</div></div><button onclick="closeNgoPop()" class="ngo-popup-close">×</button></div><div id="ngo-popup-list" class="ngo-popup-list"></div></div></div>
-<div id="ngo-popup-overlay" class="ngo-popup-overlay" style="display:none" onclick="closeNgoPop()"></div>
-<div id="lightbox" class="lightbox" style="display:none" onclick="closeLb(event)"><div class="lightbox-box"><button class="lightbox-close" onclick="closeLb()">×</button><img id="lb-img" src="" alt=""><div class="lightbox-caption" id="lb-cap"></div></div></div>
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal" id="detail-content"></div>
+</div>
 
+{% endblock %}
+{% block scripts %}
 <script>
-let allI=[],ngoReg={};
-const IC={};
-function toast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+type;setTimeout(()=>t.className='toast',3500);}
-function tagColor(tag){const m={pothole:'#ff7c38',garbage:'#84cc16',streetlight:'#ffc94a',water:'#22d4e0',traffic:'#ff4069',noise:'#a78bfa',sewage:'#fb923c',electricity:'#facc15',tree:'#4ade80'};for(let k in m)if(tag&&tag.includes(k))return m[k];return'#7b86a0';}
-function statusBadge(s){if(s==='resolved')return'<span class="badge resolved">✓ Resolved</span>';if(s==='verified')return'<span class="badge verified">● Verified</span>';if(s==='escalated')return'<span class="badge escalated">↑ Escalated</span>';return'<span class="badge open">○ Open</span>';}
-function getNgo(tag){tag=(tag||'').toLowerCase();for(let k in ngoReg)if(k!=='default'&&tag.includes(k))return ngoReg[k];return null;}
+const CURRENT_USER = "{{ current_user or '' }}";
+let activeTag = '', activeStatus = '', activeSev = '', searchQ = '';
+let allIssues = [];
 
-async function loadAreas(){const a=await(await fetch('/areas')).json();const s=document.getElementById('fa');a.forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;s.appendChild(o);});}
-
-function applyF(){
-  const a=document.getElementById('fa').value,t=document.getElementById('ft').value,s=document.getElementById('fs').value,q=document.getElementById('fq').value.toLowerCase();
-  renderIssues(allI.filter(i=>{if(a&&i.area!==a)return false;if(t&&(i.tag||'')!==t)return false;if(s&&(i.status||'open')!==s)return false;if(q&&!i.description.toLowerCase().includes(q)&&!i.area.toLowerCase().includes(q)&&!(i.tag||'').toLowerCase().includes(q))return false;return true;}));
+function setTag(el, val) {
+  activeTag = val;
+  document.querySelectorAll('#tag-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active'); loadIssues();
+}
+function setStatus(el, val) {
+  activeStatus = val;
+  document.querySelectorAll('#status-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active'); loadIssues();
+}
+function setSev(el, val) {
+  activeSev = val;
+  document.querySelectorAll('#sev-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active'); loadIssues();
 }
 
-function renderIssues(data){
-  const grid=document.getElementById('grid');
-  if(!data.length){grid.innerHTML='<div class="empty-state"><strong>No issues match your filters.</strong></div>';return;}
-  grid.innerHTML=data.slice().reverse().map(i=>{
-    const ngo=getNgo(i.tag);
-    const ngoHtml=ngo?`<div class="card-ngo"><div class="card-ngo-info"><span class="card-ngo-icon">${ngo.icon||'🏛️'}</span><span class="card-ngo-name">${ngo.name}</span></div><div class="card-ngo-actions"><a href="mailto:${ngo.contact||ngo.email||''}" class="card-ngo-btn">📧 Email</a><a href="tel:${ngo.phone}" class="card-ngo-btn">📞 Call</a><button class="card-ngo-btn escalate-btn" onclick="doEscalate(${i.id})">↑ Escalate</button></div></div>`:'';
-    return`<div class="issue-card-full">
-      <div class="issue-top"><div class="issue-area-tag"><span class="area-name">${i.area}</span><span class="tag-chip" style="background:${tagColor(i.tag)}18;color:${tagColor(i.tag)}">${i.tag||'other'}</span>${i.severity?`<span class="sev-badge ${i.severity}">${i.severity}</span>`:''}</div>${statusBadge(i.status)}</div>
-      <p class="issue-desc">${i.description}</p>
-      ${i.landmark?`<div style="font-size:11px;color:var(--text3);margin-bottom:5px">📍 ${i.landmark}</div>`:''}
-      ${i.image?`<div class="issue-img-thumb" onclick="openLb(${i.id},'${i.area}')"><img src="${i.image}" alt="photo"><span class="issue-img-thumb-label">🔍 View photo</span></div>`:''}
+let searchTimer;
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { searchQ = document.getElementById('search-input').value.trim(); loadIssues(); }, 300);
+}
+
+function loadIssues() {
+  let url = '/issues?';
+  if (activeTag) url += `tag=${encodeURIComponent(activeTag)}&`;
+  if (activeStatus) url += `status=${encodeURIComponent(activeStatus)}&`;
+  if (searchQ) url += `q=${encodeURIComponent(searchQ)}&`;
+
+  fetch(url).then(r=>r.json()).then(issues => {
+    allIssues = issues;
+
+    // Client-side sev filter
+    let filtered = activeSev ? issues.filter(i=>(i.severity||'medium')===activeSev) : issues;
+
+    // Sort
+    const sort = document.getElementById('sort-by').value;
+    if (sort === 'upvotes') filtered.sort((a,b)=>(b.upvotes||0)-(a.upvotes||0));
+    else if (sort === 'priority') filtered.sort((a,b)=>(b.priority||0)-(a.priority||0));
+    else filtered.sort((a,b)=>b.timestamp-a.timestamp);
+
+    renderStatusBar(issues);
+    renderGrid(filtered);
+    document.getElementById('issues-count').textContent = `${filtered.length} issue${filtered.length!==1?'s':''} found`;
+  }).catch(() => {
+    document.getElementById('issues-grid').innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--text2); padding:40px">Error loading issues</div>';
+  });
+}
+
+function renderStatusBar(issues) {
+  const counts = { open:0, resolved:0, escalated:0, verified:0 };
+  issues.forEach(i => { const s = i.status||'open'; if(counts[s]!==undefined) counts[s]++; });
+  const colors = { open:'#1B4F72', resolved:'#2D6A4F', escalated:'#B7770D', verified:'#5D6D7E' };
+  document.getElementById('status-bar').innerHTML = Object.entries(counts).map(([s,c]) =>
+    `<div class="status-count"><div class="status-dot" style="background:${colors[s]}"></div><strong>${c}</strong> ${s}</div>`
+  ).join('<span style="color:var(--border)">|</span>');
+}
+
+function renderGrid(issues) {
+  const grid = document.getElementById('issues-grid');
+  if (!issues.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1"><div class="empty-state"><div class="empty-state-icon">○</div><div class="empty-state-title">No issues found</div><div>Try different filters</div></div></div>';
+    return;
+  }
+  grid.innerHTML = issues.map(issue => {
+    const statusBadge = `<span class="badge badge-${issue.status||'open'}">${(issue.status||'open')}</span>`;
+    const sevBadge = issue.severity ? `<span class="badge badge-${issue.severity}">${issue.severity}</span>` : '';
+    return `
+    <div class="issue-full-card" onclick="openDetail(${issue.id})">
+      ${issue.image ? `<img src="${issue.image}" class="issue-full-card-img" loading="lazy"/>` : ''}
+      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px">
+        <span class="badge tag-${issue.tag||'other'}">${TAG_LABELS[issue.tag]||'Other'}</span>
+        ${statusBadge} ${sevBadge}
+      </div>
+      <div class="issue-desc">${escHtml(truncate(issue.description, 100))}</div>
       <div class="issue-footer">
-        <span class="issue-reporter"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${i.user||'Anonymous'} · <span style="color:var(--text3)">${i.upvotes||0} votes</span></span>
-        <div class="issue-actions"><button class="action-btn upvote" onclick="doUpvote(${i.id})"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>${i.upvotes||0}</button><button class="action-btn verify" onclick="doVerify(${i.id})">✓ Verify</button><button class="action-btn resolve" onclick="doResolve(${i.id})">✔ Resolve</button></div>
-      </div>${ngoHtml}
+        <div>
+          <div style="font-size:12px; color:var(--text2)">📍 ${escHtml(issue.area)}</div>
+          <div style="font-size:11.5px; color:var(--text3); margin-top:2px">${timeAgo(issue.timestamp)} · by ${escHtml(issue.user||'anon')}</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); quickUpvote(${issue.id}, this)">▲ ${issue.upvotes||0}</button>
+      </div>
     </div>`;
   }).join('');
 }
 
-async function load(){
-  const [ir,nr]=await Promise.all([fetch('/issues'),fetch('/ngo/all')]);
-  allI=await ir.json();
-  // convert array NGOs to lookup by tag
-  const ngoArr=await nr.json();
-  if(Array.isArray(ngoArr)){ngoArr.forEach(n=>{if(!ngoReg[n.tag])ngoReg[n.tag]=n;});}else{ngoReg=ngoArr;}
-  allI.forEach(i=>{if(i.image)IC[i.id]=i.image;});
-  const open=allI.filter(i=>!i.status||i.status==='open').length;
-  const resolved=allI.filter(i=>i.status==='resolved').length;
-  const verified=allI.filter(i=>i.status==='verified').length;
-  const esc=allI.filter(i=>i.status==='escalated').length;
-  document.getElementById('summary').innerHTML=`<div class="summary-chips"><div class="summary-chip"><strong>${allI.length}</strong> Total</div><div class="summary-chip open-c"><strong>${open}</strong> Open</div><div class="summary-chip verified-c"><strong>${verified}</strong> Verified</div><div class="summary-chip resolved-c"><strong>${resolved}</strong> Resolved</div>${esc?`<div class="summary-chip"><strong style="color:var(--orange)">${esc}</strong> Escalated</div>`:''}</div>`;
-  renderIssues(allI);
+async function quickUpvote(id, btn) {
+  const r = await fetch(`/upvote/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({user:CURRENT_USER||'anonymous'})});
+  const d = await r.json();
+  if (d.status==='ok') { showToast('+2 pts'); btn.textContent = '▲ ' + (parseInt(btn.textContent.replace('▲','').trim()||0)+1); }
 }
 
-function openLb(id,cap){const s=IC[id];if(!s)return;document.getElementById('lb-img').src=s;document.getElementById('lb-cap').textContent=cap||'';document.getElementById('lightbox').style.display='flex';document.body.style.overflow='hidden';}
-function closeLb(e){if(e&&e.target!==document.getElementById('lightbox')&&!e.target.classList.contains('lightbox-close'))return;document.getElementById('lightbox').style.display='none';document.body.style.overflow='';}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('lightbox').style.display='none';document.body.style.overflow='';}});
+function openDetail(id) {
+  const issue = allIssues.find(i=>i.id===id);
+  if (!issue) return;
+  const statusColors = { open:'badge-open', resolved:'badge-resolved', escalated:'badge-escalated', verified:'badge-verified' };
+  document.getElementById('detail-content').innerHTML = `
+    <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+    ${issue.image ? `<img src="${issue.image}" style="width:100%;border-radius:8px;margin-bottom:16px;max-height:220px;object-fit:cover"/>` : ''}
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px">
+      <span class="badge tag-${issue.tag||'other'}">${TAG_LABELS[issue.tag]||'Other'}</span>
+      <span class="badge ${statusColors[issue.status||'open']||'badge-open'}">${issue.status||'open'}</span>
+      ${issue.severity ? `<span class="badge badge-${issue.severity}">${issue.severity}</span>` : ''}
+      ${issue.verified ? '<span class="badge badge-verified">Verified</span>' : ''}
+    </div>
+    <div style="font-size:15px; font-weight:500; line-height:1.5; margin-bottom:14px">${escHtml(issue.description)}</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 0">
+      <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3)">Area</div><div style="font-weight:500;margin-top:2px">${escHtml(issue.area)}</div></div>
+      <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3)">Reported by</div><div style="font-weight:500;margin-top:2px">${escHtml(issue.user||'anonymous')}</div></div>
+      <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3)">Reported</div><div style="font-weight:500;margin-top:2px">${timeAgo(issue.timestamp)}</div></div>
+      <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3)">Upvotes</div><div style="font-weight:500;margin-top:2px">${issue.upvotes||0}</div></div>
+      ${issue.landmark ? `<div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3)">Landmark</div><div style="font-weight:500;margin-top:2px">${escHtml(issue.landmark)}</div></div>` : ''}
+      ${issue.assigned_to ? `<div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3)">Assigned to</div><div style="font-weight:500;margin-top:2px">${escHtml(issue.assigned_to)}</div></div>` : ''}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" onclick="upvoteDetail(${issue.id})">▲ Upvote</button>
+      <button class="btn btn-outline" onclick="closeModal('detail-modal')">Close</button>
+    </div>
+  `;
+  document.getElementById('detail-modal').classList.add('open');
+}
 
-function showNgoPop(ngos){document.getElementById('ngo-popup-list').innerHTML=ngos.map(n=>`<div class="ngo-popup-card"><div class="ngo-popup-card-left"><span style="font-size:20px">${n.icon||'🏛️'}</span><div><div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text)">${n.name}</div><div style="font-size:11px;color:var(--text2)">${n.focus}</div><div style="font-size:10px;color:var(--text3)">📍 ${n.address||''} · <span style="color:var(--accent)">${n.distance_km} km</span></div></div></div><div style="display:flex;gap:5px;flex-shrink:0"><a href="tel:${n.phone}" style="font-size:11px;font-weight:700;color:var(--green);text-decoration:none;border:1px solid rgba(31,209,138,0.25);padding:5px 9px;border-radius:6px;background:rgba(31,209,138,0.07)">📞</a><a href="mailto:${n.email||n.contact||''}" style="font-size:11px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid rgba(79,126,248,0.25);padding:5px 9px;border-radius:6px;background:rgba(79,126,248,0.07)">📧</a></div></div>`).join('');document.getElementById('ngo-popup').style.display='flex';document.getElementById('ngo-popup-overlay').style.display='block';}
-function closeNgoPop(){document.getElementById('ngo-popup').style.display='none';document.getElementById('ngo-popup-overlay').style.display='none';toast('✔ Issue resolved · +20 pts 🎉');}
+async function upvoteDetail(id) {
+  const r = await fetch(`/upvote/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:CURRENT_USER||'anonymous'})});
+  const d = await r.json();
+  if (d.status==='ok') { showToast('+2 pts'); loadIssues(); closeModal('detail-modal'); }
+}
 
-async function doUpvote(id){await fetch('/upvote/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});toast('⬆ +2 pts');load();}
-function doVerify(id){const pwd=prompt('🔒 Admin password:');if(pwd===null)return;fetch('/verify/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_password:pwd})}).then(r=>r.json()).then(d=>{if(d.error)toast(d.error,'error');else{toast('✓ Verified · +5 pts');load();}});}
-async function doResolve(id){const res=await fetch('/resolve/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const d=await res.json();load();if(d.nearby_ngos&&d.nearby_ngos.length)showNgoPop(d.nearby_ngos);else toast('✔ Resolved · +20 pts 🎉');}
-async function doEscalate(id){await fetch('/ngo/escalate/'+id,{method:'POST',headers:{'Content-Type':'application/json'}});toast('↑ Escalated to NGO','ngo');load();}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function truncate(s,n) { return s&&s.length>n?s.slice(0,n)+'…':s||''; }
+function escHtml(s) {
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-loadAreas();load();
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) el.classList.remove('open'); });
+});
+
+loadIssues();
 </script>
-</body>
-</html>
+{% endblock %}
