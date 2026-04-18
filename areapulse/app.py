@@ -8,11 +8,41 @@ from database import (
 from classifier import auto_tag
 import math, time, base64, os
 import psycopg2.extras
+from flask_dance.contrib.google import make_google_blueprint, google
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'problemmap-secret-2025')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+# Allow HTTP for local development (remove in production)
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+
+# ── GOOGLE OAUTH ───────────────────────────────────────
+from flask_dance.consumer import oauth_authorized
+
+google_bp = make_google_blueprint(
+    client_id=os.environ.get('GOOGLE_CLIENT_ID'),
+    client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
+    scope=['openid', 'https://www.googleapis.com/auth/userinfo.email',
+           'https://www.googleapis.com/auth/userinfo.profile'],
+)
+app.register_blueprint(google_bp, url_prefix='/auth')
+
+@oauth_authorized.connect_via(google_bp)
+def google_logged_in(blueprint, token):
+    if not token:
+        return False
+    try:
+        resp = blueprint.session.get('/oauth2/v2/userinfo')
+        if resp.ok:
+            info = resp.json()
+            name = info.get('name') or info.get('email', 'User').split('@')[0]
+            session['user'] = name
+            session['google_email'] = info.get('email', '')
+            add_points(name, 0)
+    except Exception:
+        pass
+    return False
 
 init_db()
 seed_real_issues()
