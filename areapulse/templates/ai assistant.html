@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}AI Assistant — Problem Map{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{% endblock %}
+
+{% block content %}
+<!-- Override page-wrap to allow full-height layout -->
+<style>.page-wrap { height: 100vh; overflow: hidden; }</style>
+
+<div class="ai-layout">
+
+  <!-- LEFT: MAP + DATA PANEL -->
+  <div class="ai-left">
+    <div id="ai-map"></div>
+    <div class="data-panel" id="dataPanel">
+      <div class="data-panel-header">
+        <span id="dataPanelTitle">Area Comparison</span>
+        <button onclick="closeDataPanel()">✕</button>
+      </div>
+      <div id="dataPanelContent"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: CHAT -->
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-header-title">
+        Civic AI
+        <span class="chat-header-badge">Powered by Claude</span>
+      </div>
+      <div class="chat-header-sub">Ask about hotspots, compare areas, find NGOs</div>
+    </div>
+
+    <div class="quick-prompts">
+      <button class="qp-btn" onclick="sendQuick('Which area has the most potholes?')">Most potholes</button>
+      <button class="qp-btn" onclick="sendQuick('Show the top 5 most problematic areas')">Top hotspots</button>
+      <button class="qp-btn" onclick="sendQuick('Compare Rohini and Dwarka')">Compare areas</button>
+      <button class="qp-btn" onclick="sendQuick('Pinpoint Connaught Place on the map')">Pinpoint area</button>
+      <button class="qp-btn" onclick="sendQuick('Which areas have the worst garbage problem?')">Garbage hotspots</button>
+      <button class="qp-btn" onclick="sendQuick('Show overall map summary')">Map summary</button>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="msg ai">
+        <div class="msg-avatar">AI</div>
+        <div class="msg-body">
+          <div class="msg-bubble">
+            Hi! I'm the <strong>AreaPulse AI</strong> — your civic intelligence assistant for Delhi.<br><br>
+            I can <strong>pinpoint areas</strong> on the map, <strong>compare cities</strong>, show <strong>pollution hotspots</strong>, and help you understand civic data.<br><br>
+            Try: <em>"Which area has the worst sewage problem?"</em>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <div class="input-row">
+        <textarea id="chatInput" rows="1" placeholder="Ask about Delhi's civic issues…"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" onclick="sendMessage()" title="Send">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
