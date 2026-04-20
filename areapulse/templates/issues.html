@@ -192,7 +192,7 @@ function loadIssues() {
 function renderStatusBar(issues) {
   const counts = { open:0, resolved:0, escalated:0, verified:0 };
   issues.forEach(i => { const s = i.status||'open'; if(counts[s]!==undefined) counts[s]++; });
-  const colors = { open:'#1B4F72', resolved:'#2D6A4F', escalated:'#B7770D', verified:'#5D6D7E' };
+  const colors = { open:'var(--blue)', resolved:'var(--green)', escalated:'var(--amber)', verified:'var(--text2)' };
   document.getElementById('status-bar').innerHTML = Object.entries(counts).map(([s,c]) =>
     `<div class="status-count"><div class="status-dot" style="background:${colors[s]}"></div><strong>${c}</strong> ${s}</div>`
   ).join('<span style="color:var(--border)">|</span>');

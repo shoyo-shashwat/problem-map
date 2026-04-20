@@ -38,7 +38,7 @@
   }
   .lb-row:last-child { border-bottom: none; }
   .lb-row:hover { background: var(--surface2); }
-  .lb-row.me { background: #FFF8F7; }
+  .lb-row.me { background: rgba(200, 75, 49, 0.07); }
   .lb-rank { width: 24px; font-size: 13px; font-weight: 700; color: var(--text3); text-align: center; }
   .lb-rank.gold { color: #B7860D; }
   .lb-rank.silver { color: #5D6D7E; }
@@ -50,6 +50,14 @@
   .points-guide { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 24px; }
   .pts-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
   .pts-row:last-child { border-bottom: none; }
+
+  /* ── Dark mode overrides ── */
+  body.dark .level-newbie     { background: rgba(93,109,126,0.2); color: #A89E94; }
+  body.dark .level-active     { background: rgba(27,79,114,0.25); color: #7eb8d4; }
+  body.dark .level-contributor{ background: rgba(183,119,13,0.2); color: #c9a84c; }
+  body.dark .level-hero       { background: rgba(200,75,49,0.2);  color: var(--accent); }
+  body.dark .lb-row.me        { background: rgba(200, 75, 49, 0.1); }
+  body.dark .lb-row.me:hover  { background: rgba(200, 75, 49, 0.15); }
 </style>
 {% endblock %}
 {% block content %}

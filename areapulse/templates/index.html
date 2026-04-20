@@ -45,7 +45,7 @@
     margin-bottom: 8px; cursor: pointer; transition: all 0.15s;
     background: var(--surface);
   }
-  .issue-card:hover { border-color: var(--accent); background: #FFF8F7; }
+  .issue-card:hover { border-color: var(--accent); background: rgba(200,75,49,0.05); }
   .issue-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
   .issue-card-desc { font-size: 13px; line-height: 1.5; color: var(--text); }
   .issue-card-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
@@ -105,15 +105,20 @@
     background: transparent; cursor: pointer; font-family: inherit;
     font-size: 12px; font-weight: 500; transition: all 0.15s; text-align: center;
   }
-  .sev-btn.active-high { background: #FDEDEC; border-color: var(--accent); color: var(--accent); }
+  .sev-btn.active-high   { background: #FDEDEC; border-color: var(--accent); color: var(--accent); }
   .sev-btn.active-medium { background: #FEF9E7; border-color: var(--amber); color: var(--amber); }
-  .sev-btn.active-low { background: #E9F5EE; border-color: var(--green); color: var(--green); }
+  .sev-btn.active-low    { background: #E9F5EE; border-color: var(--green); color: var(--green); }
+  body.dark .sev-btn.active-high   { background: rgba(200,75,49,0.2);  }
+  body.dark .sev-btn.active-medium { background: rgba(183,119,13,0.2); }
+  body.dark .sev-btn.active-low    { background: rgba(45,106,79,0.2);  }
 
   /* ── ISSUE DETAIL MODAL ───────────────────── */
   .detail-image { width: 100%; border-radius: 8px; margin-bottom: 16px; max-height: 200px; object-fit: cover; }
   .detail-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
   .detail-meta-item label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); }
   .detail-meta-item value { display: block; font-size: 13px; font-weight: 500; }
+
+  /* map dark mode handled globally in style.css via .leaflet-tile-pane */
 
   @media (max-width: 768px) {
     .sidebar { display: none; }

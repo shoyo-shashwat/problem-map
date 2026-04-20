@@ -31,9 +31,9 @@
   .btn-google {
     display: flex; align-items: center; justify-content: center; gap: 10px;
     width: 100%; padding: 10px; border: 1px solid var(--border);
-    border-radius: 8px; background: white; cursor: pointer;
+    border-radius: 8px; background: var(--surface); cursor: pointer;
     font-family: inherit; font-size: 14px; font-weight: 500; color: var(--text);
-    transition: background 0.15s; text-decoration: none;
+    transition: background 0.15s, border-color 0.15s; text-decoration: none;
   }
   .btn-google:hover { background: var(--surface2); }
   .google-icon { width: 18px; height: 18px; }
@@ -47,7 +47,7 @@
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
   .error-msg {
-    background: #FDEDEC; color: var(--accent); border: 1px solid #F5B7B1;
+    background: rgba(200,75,49,0.1); color: var(--accent); border: 1px solid rgba(200,75,49,0.25);
     border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px;
   }
 </style>

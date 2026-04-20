@@ -237,7 +237,7 @@ function renderPosts(posts) {
     const initials = (p.user||'A').slice(0,2).toUpperCase();
     const icon = TYPE_ICONS[p.post_type||'update'] || '○';
     const color = TYPE_COLORS[p.post_type||'update'] || 'var(--blue)';
-    const bgColor = p.post_type==='alert' ? '#FFF5F5' : p.post_type==='resolved' ? '#F0FFF4' : 'var(--surface)';
+    const bgColor = p.post_type==='alert' ? 'var(--post-alert-bg)' : p.post_type==='resolved' ? 'var(--post-resolved-bg)' : 'var(--surface)';
     return `
     <div class="post-card" style="background:${bgColor}">
       <div class="post-header">
