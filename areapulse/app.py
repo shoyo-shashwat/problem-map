@@ -3,7 +3,8 @@ from database import (
     init_db, insert_issue, get_issues, get_issues_by_user, upvote_issue, get_db,
     verify_issue, resolve_issue, escalate_issue, add_points, seed_real_issues,
     get_ngos, get_gov_agencies, get_nearby_ngos, get_user_stats,
-    get_community_posts, add_community_post, like_post
+    get_community_posts, add_community_post, like_post,
+    toggle_issue_action, get_user_actions
 )
 from classifier import auto_tag
 import math, time, base64, os
@@ -201,6 +202,12 @@ def issues():
     if af: all_i = [i for i in all_i if i.get('area', '') == af]
     if sf: all_i = [i for i in all_i if (i.get('status') or 'open') == sf]
     if q:  all_i = [i for i in all_i if q in i.get('description', '').lower() or q in i.get('area', '').lower() or q in (i.get('tag') or '').lower()]
+    # Attach user's actions so frontend can show toggle state
+    user = session.get('user') or request.args.get('user', '').strip()
+    if user and all_i:
+        user_acts = get_user_actions(user, [i['id'] for i in all_i])
+        for i in all_i:
+            i['user_actions'] = list(user_acts.get(i['id'], []))
     return jsonify(all_i)
 
 @app.route('/my-issues-data')
@@ -230,18 +237,21 @@ def map_data():
 def upvote(id):
     d = request.json or {}
     user = d.get('user') or session.get('user') or 'anonymous'
-    upvote_issue(id)
-    add_points(user, 2)
-    return jsonify({'status': 'ok', 'points_earned': 2})
+    result = toggle_issue_action(user, id, 'upvote')
+    pts = 2 if result == 'added' else -2
+    add_points(user, pts)
+    return jsonify({'status': 'ok', 'action': result, 'points_earned': pts})
 
 @app.route('/verify/<int:id>', methods=['POST'])
 def verify(id):
     d = request.json or {}
     if d.get('admin_password', '') != ADMIN_PASSWORD:
         return jsonify({'error': 'Incorrect admin password'}), 403
-    verify_issue(id)
-    add_points(d.get('user', 'anonymous'), 5)
-    return jsonify({'status': 'verified', 'points_earned': 5})
+    user = d.get('user') or session.get('user') or 'anonymous'
+    result = toggle_issue_action(user, id, 'verify')
+    pts = 5 if result == 'added' else -5
+    add_points(user, pts)
+    return jsonify({'status': 'ok', 'action': result, 'points_earned': pts})
 
 @app.route('/resolve/<int:id>', methods=['POST'])
 def resolve(id):
@@ -279,16 +289,9 @@ def ngo_nearby():
 @app.route('/ngo/escalate/<int:id>', methods=['POST'])
 def ngo_escalate(id):
     d = request.json or {}
-    assigned_to = d.get('assigned_to') or None
-    db = get_db()
-    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute('SELECT * FROM issues WHERE id=%s', (id,))
-    issue = cur.fetchone()
-    db.close()
-    if not issue:
-        return jsonify({'error': 'Not found'}), 404
-    escalate_issue(id, assigned_to=assigned_to)
-    return jsonify({'status': 'escalated'})
+    user = d.get('user') or session.get('user') or 'anonymous'
+    result = toggle_issue_action(user, id, 'escalate')
+    return jsonify({'status': 'ok', 'action': result})
 
 @app.route('/gov/all')
 def gov_all():

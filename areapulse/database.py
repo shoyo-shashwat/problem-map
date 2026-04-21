@@ -63,6 +63,12 @@ def init_db():
         user_name TEXT, post_id INTEGER,
         PRIMARY KEY (user_name, post_id)
     )''')
+    cur.execute('''CREATE TABLE IF NOT EXISTS issue_actions (
+        user_name TEXT,
+        issue_id  INTEGER,
+        action    TEXT,
+        PRIMARY KEY (user_name, issue_id, action)
+    )''')
     db.commit()
     db.close()
     _seed_ngos()
@@ -199,6 +205,85 @@ def upvote_issue(issue_id):
         age = max((time.time() - row['timestamp']) / 3600, 1)
         cur.execute('UPDATE issues SET priority=%s WHERE id=%s', (round(row['upvotes'] / age, 2), issue_id))
     db.commit(); db.close()
+
+def toggle_issue_action(user, issue_id, action):
+    """
+    Toggle an action (upvote/verify/escalate) for a user on an issue.
+    Returns 'added' if the action was applied, 'removed' if it was undone.
+    action must be one of: 'upvote', 'verify', 'escalate'
+    """
+    db = get_db()
+    cur = db.cursor()
+    cur2 = _cur(db)
+
+    # Check if action already exists
+    cur2.execute(
+        'SELECT 1 FROM issue_actions WHERE user_name=%s AND issue_id=%s AND action=%s',
+        (user, issue_id, action)
+    )
+    exists = cur2.fetchone()
+
+    if exists:
+        # --- UNDO ---
+        cur.execute(
+            'DELETE FROM issue_actions WHERE user_name=%s AND issue_id=%s AND action=%s',
+            (user, issue_id, action)
+        )
+        if action == 'upvote':
+            cur.execute('UPDATE issues SET upvotes=GREATEST(upvotes-1,0) WHERE id=%s', (issue_id,))
+            # Recalculate priority
+            cur2.execute('SELECT upvotes, timestamp FROM issues WHERE id=%s', (issue_id,))
+            row = cur2.fetchone()
+            if row:
+                age = max((time.time() - row['timestamp']) / 3600, 1)
+                cur.execute('UPDATE issues SET priority=%s WHERE id=%s',
+                            (round(row['upvotes'] / age, 2), issue_id))
+        elif action == 'verify':
+            cur.execute("UPDATE issues SET verified=GREATEST(verified-1,0), status='open' WHERE id=%s", (issue_id,))
+        elif action == 'escalate':
+            cur.execute("UPDATE issues SET status='open' WHERE id=%s", (issue_id,))
+        db.commit(); db.close()
+        return 'removed'
+    else:
+        # --- APPLY ---
+        cur.execute(
+            'INSERT INTO issue_actions (user_name, issue_id, action) VALUES (%s,%s,%s)',
+            (user, issue_id, action)
+        )
+        if action == 'upvote':
+            cur.execute('UPDATE issues SET upvotes=upvotes+1 WHERE id=%s', (issue_id,))
+            cur2.execute('SELECT upvotes, timestamp FROM issues WHERE id=%s', (issue_id,))
+            row = cur2.fetchone()
+            if row:
+                age = max((time.time() - row['timestamp']) / 3600, 1)
+                cur.execute('UPDATE issues SET priority=%s WHERE id=%s',
+                            (round(row['upvotes'] / age, 2), issue_id))
+        elif action == 'verify':
+            cur.execute("UPDATE issues SET verified=verified+1, status='verified' WHERE id=%s", (issue_id,))
+        elif action == 'escalate':
+            cur.execute("UPDATE issues SET status='escalated' WHERE id=%s", (issue_id,))
+        db.commit(); db.close()
+        return 'added'
+
+def get_user_actions(user, issue_ids):
+    """
+    Returns a dict: { issue_id: set('upvote','verify','escalate') }
+    for all issue_ids the user has acted on.
+    """
+    if not user or not issue_ids:
+        return {}
+    db = get_db()
+    cur = _cur(db)
+    cur.execute(
+        'SELECT issue_id, action FROM issue_actions WHERE user_name=%s AND issue_id = ANY(%s)',
+        (user, list(issue_ids))
+    )
+    rows = cur.fetchall()
+    db.close()
+    result = {}
+    for r in rows:
+        result.setdefault(r['issue_id'], set()).add(r['action'])
+    return result
 
 def verify_issue(issue_id):
     db = get_db()

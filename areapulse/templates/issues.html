@@ -44,6 +44,21 @@
   .search-wrap { position: relative; margin-bottom: 20px; }
   .search-wrap input { padding-left: 34px; }
   .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text3); pointer-events: none; }
+
+  .card-actions { display: flex; align-items: center; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .card-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); background: transparent;
+    cursor: pointer; font-family: inherit; color: var(--text2);
+    transition: all 0.15s;
+  }
+  .card-btn:hover { background: var(--surface2); color: var(--text); }
+  .card-btn-verify:hover   { border-color: var(--green); color: var(--green); }
+  .card-btn-escalate:hover { border-color: var(--amber); color: var(--amber); }
+  .card-btn-active-upvote   { border-color: var(--accent) !important; color: var(--accent) !important; background: rgba(200,75,49,0.08) !important; }
+  .card-btn-active-verify   { border-color: var(--green)  !important; color: var(--green)  !important; background: rgba(45,106,79,0.08)  !important; }
+  .card-btn-active-escalate { border-color: var(--amber)  !important; color: var(--amber)  !important; background: rgba(183,119,13,0.08) !important; }
 </style>
 {% endblock %}
 {% block content %}
@@ -215,12 +230,12 @@ function renderGrid(issues) {
         ${statusBadge} ${sevBadge}
       </div>
       <div class="issue-desc">${escHtml(truncate(issue.description, 100))}</div>
-      <div class="issue-footer">
-        <div>
-          <div style="font-size:12px; color:var(--text2)">📍 ${escHtml(issue.area)}</div>
-          <div style="font-size:11.5px; color:var(--text3); margin-top:2px">${timeAgo(issue.timestamp)} · by ${escHtml(issue.user||'anon')}</div>
-        </div>
-        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); quickUpvote(${issue.id}, this)">▲ ${issue.upvotes||0}</button>
+      <div style="font-size:12px; color:var(--text2); margin-bottom:2px">📍 ${escHtml(issue.area)}</div>
+      <div style="font-size:11.5px; color:var(--text3);">${timeAgo(issue.timestamp)} · by ${escHtml(issue.user||'anon')}</div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="card-btn ${(issue.user_actions||[]).includes('upvote') ? 'card-btn-active-upvote' : ''}" onclick="quickUpvote(${issue.id}, this)">▲ <span>${issue.upvotes||0}</span></button>
+        <button class="card-btn card-btn-verify ${(issue.user_actions||[]).includes('verify') ? 'card-btn-active-verify' : ''}" onclick="verifyIssue(${issue.id}, this)">✓ ${(issue.user_actions||[]).includes('verify') ? 'Verified' : 'Verify'}</button>
+        <button class="card-btn card-btn-escalate ${(issue.user_actions||[]).includes('escalate') ? 'card-btn-active-escalate' : ''}" onclick="escalateIssue(${issue.id}, this)">↑ ${(issue.user_actions||[]).includes('escalate') ? 'Escalated' : 'Escalate'}</button>
       </div>
     </div>`;
   }).join('');
@@ -229,7 +244,55 @@ function renderGrid(issues) {
 async function quickUpvote(id, btn) {
   const r = await fetch(`/upvote/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({user:CURRENT_USER||'anonymous'})});
   const d = await r.json();
-  if (d.status==='ok') { showToast('+2 pts'); btn.textContent = '▲ ' + (parseInt(btn.textContent.replace('▲','').trim()||0)+1); }
+  if (d.status==='ok') {
+    const span = btn.querySelector('span');
+    const count = parseInt(span.textContent||0);
+    if (d.action === 'added') {
+      span.textContent = count + 1;
+      btn.classList.add('card-btn-active-upvote');
+      showToast('+2 pts');
+    } else {
+      span.textContent = Math.max(count - 1, 0);
+      btn.classList.remove('card-btn-active-upvote');
+      showToast('-2 pts · upvote removed');
+    }
+  }
+}
+
+async function verifyIssue(id, btn) {
+  const pwd = prompt('Enter admin password to verify:');
+  if (!pwd) return;
+  const r = await fetch(`/verify/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({admin_password: pwd, user: CURRENT_USER||'anonymous'})});
+  const d = await r.json();
+  if (d.status === 'ok') {
+    if (d.action === 'added') {
+      btn.textContent = '✓ Verified';
+      btn.classList.add('card-btn-active-verify');
+      showToast('Verified! +5 pts');
+    } else {
+      btn.textContent = '✓ Verify';
+      btn.classList.remove('card-btn-active-verify');
+      showToast('Verification removed');
+    }
+    loadIssues();
+  } else { showToast(d.error || 'Verification failed'); }
+}
+
+async function escalateIssue(id, btn) {
+  const r = await fetch(`/ngo/escalate/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({user: CURRENT_USER||'anonymous'})});
+  const d = await r.json();
+  if (d.status === 'ok') {
+    if (d.action === 'added') {
+      btn.textContent = '↑ Escalated';
+      btn.classList.add('card-btn-active-escalate');
+      showToast('Issue escalated!');
+    } else {
+      btn.textContent = '↑ Escalate';
+      btn.classList.remove('card-btn-active-escalate');
+      showToast('Escalation removed');
+    }
+    loadIssues();
+  } else { showToast(d.error || 'Escalation failed'); }
 }
 
 function openDetail(id) {
