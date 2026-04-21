@@ -3,9 +3,20 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
+  /* ── HOME LAYOUT — now flex column to stack strip above map ── */
   .home-layout {
-    display: flex; height: calc(100vh - var(--nav-h));
+    display: flex;
+    flex-direction: column;        /* ← changed from default row */
+    height: calc(100vh - var(--nav-h));
     overflow: hidden;
+  }
+
+  /* Row that holds sidebar + map side-by-side (same as before) */
+  .home-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;                 /* critical for flex children to scroll */
   }
 
   /* ── SIDEBAR ──────────────────────────────── */
@@ -62,7 +73,6 @@
   .map-container { flex: 1; position: relative; }
   #map { width: 100%; height: 100%; }
 
-  /* map controls */
   .map-controls {
     position: absolute; top: 16px; right: 16px; z-index: 500;
     display: flex; flex-direction: column; gap: 8px;
@@ -118,94 +128,120 @@
   .detail-meta-item label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); }
   .detail-meta-item value { display: block; font-size: 13px; font-weight: 500; }
 
-  /* map dark mode handled globally in style.css via .leaflet-tile-pane */
-
   @media (max-width: 768px) {
     .sidebar { display: none; }
-    .home-layout { height: calc(100vh - var(--nav-h)); }
   }
 </style>
 {% endblock %}
-{% block content %}
 
+{% block content %}
 <div class="home-layout">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-title">Delhi Issues</div>
-      <div class="sidebar-sub">Live civic reports from across the city</div>
-    </div>
-
-    <div class="sidebar-stats">
-      <div class="stat-box">
-        <div class="stat-num stat-red" id="stat-total">—</div>
-        <div class="stat-label">Total</div>
+  <!-- ══ NGO NEARBY STRIP (above map, collapsible) ══ -->
+  <div class="ngo-strip-wrapper" id="ngo-strip-wrapper">
+    <div class="ngo-strip">
+      <div class="ngo-strip-header">
+        <div class="ngo-strip-label">
+          <div class="ngo-live-dot"></div>
+          <span id="ngo-strip-title">Nearby NGOs for this issue — contact them directly</span>
+        </div>
+        <button class="ngo-strip-close" onclick="collapseNGOStrip()" title="Collapse">✕</button>
       </div>
-      <div class="stat-box">
-        <div class="stat-num stat-green" id="stat-resolved">—</div>
-        <div class="stat-label">Resolved</div>
+      <div class="ngo-strip-cards" id="ngo-strip-cards">
+        <!-- Populated by JS -->
       </div>
-      <div class="stat-box">
-        <div class="stat-num stat-blue" id="stat-open">—</div>
-        <div class="stat-label">Open</div>
-      </div>
-    </div>
-
-    <div class="sidebar-filters">
-      <select id="filter-tag" onchange="applyFilters()" style="flex:1">
-        <option value="">All Categories</option>
-        <option value="pothole">Pothole</option>
-        <option value="water">Water</option>
-        <option value="garbage">Garbage</option>
-        <option value="streetlight">Streetlight</option>
-        <option value="traffic">Traffic</option>
-        <option value="noise">Noise</option>
-        <option value="sewage">Sewage</option>
-        <option value="electricity">Electricity</option>
-        <option value="tree">Tree</option>
-      </select>
-      <select id="filter-status" onchange="applyFilters()" style="flex:1">
-        <option value="">All Status</option>
-        <option value="open">Open</option>
-        <option value="resolved">Resolved</option>
-        <option value="escalated">Escalated</option>
-      </select>
-    </div>
-
-    <div class="sidebar-list" id="sidebar-list">
-      <div class="empty-state">
-        <div class="spinner" style="margin:0 auto 12px"></div>
-        <div>Loading issues…</div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- MAP -->
-  <div class="map-container">
-    <div id="map"></div>
-
-    <div class="map-controls">
-      <button class="map-fab map-fab-primary" onclick="openReportModal()">
-        + Report Issue
-      </button>
-      <button class="map-fab" onclick="locateMe()">
-        ◎ My Location
-      </button>
-      <button class="map-fab" onclick="toggleHeatmap()">
-        ⬡ Heatmap
-      </button>
-    </div>
-
-    <div class="map-legend">
-      <div class="map-legend-title">Issue Density</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#C84B31"></div> High (8+)</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#E8773F"></div> Medium (4–7)</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#2D6A4F"></div> Low (1–3)</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#1B4F72; border:2px solid #1B4F72"></div> Your Report</div>
     </div>
   </div>
-</div>
+
+  <!-- ══ MAIN BODY: sidebar + map ══ -->
+  <div class="home-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Delhi Issues</div>
+        <div class="sidebar-sub">Live civic reports from across the city</div>
+      </div>
+
+      <div class="sidebar-stats">
+        <div class="stat-box">
+          <div class="stat-num stat-red" id="stat-total">—</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num stat-green" id="stat-resolved">—</div>
+          <div class="stat-label">Resolved</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num stat-blue" id="stat-open">—</div>
+          <div class="stat-label">Open</div>
+        </div>
+      </div>
+
+      <div class="sidebar-filters">
+        <select id="filter-tag" onchange="applyFilters()" style="flex:1">
+          <option value="">All Categories</option>
+          <option value="pothole">Pothole</option>
+          <option value="water">Water</option>
+          <option value="garbage">Garbage</option>
+          <option value="streetlight">Streetlight</option>
+          <option value="traffic">Traffic</option>
+          <option value="noise">Noise</option>
+          <option value="sewage">Sewage</option>
+          <option value="electricity">Electricity</option>
+          <option value="tree">Tree</option>
+        </select>
+        <select id="filter-status" onchange="applyFilters()" style="flex:1">
+          <option value="">All Status</option>
+          <option value="open">Open</option>
+          <option value="resolved">Resolved</option>
+          <option value="escalated">Escalated</option>
+        </select>
+      </div>
+
+      <div class="sidebar-list" id="sidebar-list">
+        <div class="empty-state">
+          <div class="spinner" style="margin:0 auto 12px"></div>
+          <div>Loading issues…</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAP -->
+    <div class="map-container">
+      <!-- Collapsed NGO pill — floats above map when strip is closed but NGOs exist -->
+      <div class="ngo-collapsed-pill" id="ngo-collapsed-pill" onclick="expandNGOStrip()">
+        <div class="ngo-live-dot"></div>
+        <span id="ngo-pill-text">NGOs nearby</span>
+        <span style="font-size:10px; opacity:0.7">▲ show</span>
+      </div>
+
+      <div id="map"></div>
+
+      <div class="map-controls">
+        <button class="map-fab map-fab-primary" onclick="openReportModal()">
+          + Report Issue
+        </button>
+        <button class="map-fab" onclick="locateMe()">
+          ◎ My Location
+        </button>
+        <button class="map-fab" onclick="toggleHeatmap()">
+          ⬡ Heatmap
+        </button>
+      </div>
+
+      <div class="map-legend">
+        <div class="map-legend-title">Issue Density</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#C84B31"></div> High (8+)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#E8773F"></div> Medium (4–7)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2D6A4F"></div> Low (1–3)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#1B4F72; border:2px solid #1B4F72"></div> Your Report</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2D6A4F; border:2px solid white; outline:1px solid #2D6A4F"></div> NGO</div>
+      </div>
+    </div>
+
+  </div><!-- end .home-body -->
+</div><!-- end .home-layout -->
 
 <!-- ── REPORT MODAL ───────────────────────────── -->
 <div class="modal-overlay" id="report-modal">
@@ -270,6 +306,7 @@
 </div>
 
 {% endblock %}
+
 {% block scripts %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -285,7 +322,12 @@ L.control.zoom({ position: 'bottomright' }).addTo(map);
 let heatmapVisible = false;
 let heatCircles = [];
 let markerLayer = L.layerGroup().addTo(map);
+let ngoMarkerLayer = L.layerGroup().addTo(map); // separate layer for NGO pins
 let allIssues = [];
+
+// Track current NGOs for the pill
+let currentNGOs = [];
+let stripExpanded = false;
 
 // ── AREA LOADER ────────────────────────────
 fetch('/areas').then(r=>r.json()).then(areas => {
@@ -309,7 +351,7 @@ function loadIssues() {
     renderSidebar(issues);
     renderMarkers(issues);
     updateStats(issues);
-  }).catch(err => {
+  }).catch(() => {
     document.getElementById('sidebar-list').innerHTML =
       '<div class="empty-state"><div class="empty-state-icon">!</div><div>Could not load issues</div></div>';
   });
@@ -349,7 +391,7 @@ function renderSidebar(issues) {
   `).join('');
 }
 
-// ── MAP MARKERS ────────────────────────────
+// ── ISSUE MAP MARKERS ──────────────────────
 const TAG_COLORS = {
   pothole:'#A04000', water:'#1A5276', garbage:'#1D6A39', streetlight:'#5D6D7E',
   traffic:'#922B21', noise:'#7D3C98', sewage:'#9A7D0A', electricity:'#935116',
@@ -383,6 +425,150 @@ function renderMarkers(issues) {
     `);
     markerLayer.addLayer(m);
   });
+}
+
+// ── NGO MAP MARKERS ────────────────────────
+function plotNGOMarkers(ngos) {
+  ngoMarkerLayer.clearLayers();
+  if (!ngos || !ngos.length) return;
+
+  ngos.forEach(ngo => {
+    if (!ngo.lat || !ngo.lng) return;
+
+    // Distinctive NGO icon — green square with emoji
+    const icon = L.divIcon({
+      html: `<div style="
+        width:28px;height:28px;
+        background:#2D6A4F;
+        border:2.5px solid white;
+        border-radius:7px;
+        display:flex;align-items:center;justify-content:center;
+        font-size:13px;
+        box-shadow:0 2px 6px rgba(45,106,79,0.4);
+        cursor:pointer;
+      ">${ngo.icon || '○'}</div>`,
+      className: '',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+
+    const phoneBtn = ngo.phone
+      ? `<a class="ngo-popup-btn" href="tel:${ngo.phone}">📞 Call</a>`
+      : '';
+    const emailBtn = ngo.email
+      ? `<a class="ngo-popup-btn" href="mailto:${ngo.email}">✉ Email</a>`
+      : '';
+    const dist = ngo.distance_km != null ? `${ngo.distance_km} km away · ` : '';
+
+    const popup = L.popup({ maxWidth: 240, className: '' }).setContent(`
+      <div class="ngo-popup">
+        <div class="ngo-popup-name">${escHtml(ngo.name)}</div>
+        <div class="ngo-popup-meta">
+          ${dist}${escHtml(ngo.area || '')}<br>
+          ${escHtml(ngo.focus || '')}
+        </div>
+        <div class="ngo-popup-actions">
+          ${phoneBtn}
+          ${emailBtn}
+        </div>
+      </div>
+    `);
+
+    L.marker([ngo.lat, ngo.lng], { icon }).bindPopup(popup).addTo(ngoMarkerLayer);
+  });
+}
+
+// ── NGO STRIP CONTROLS ─────────────────────
+function showNGOStrip(ngos, label) {
+  if (!ngos || !ngos.length) return;
+  currentNGOs = ngos;
+
+  // Update label
+  const titleEl = document.getElementById('ngo-strip-title');
+  if (label) {
+    titleEl.textContent = label;
+  } else {
+    const tag = ngos[0] && ngos[0].tag ? ngos[0].tag : '';
+    titleEl.textContent = `${ngos.length} nearby NGO${ngos.length !== 1 ? 's' : ''} for this issue — contact them directly`;
+  }
+
+  // Render cards
+  const cardsEl = document.getElementById('ngo-strip-cards');
+  cardsEl.innerHTML = ngos.map(ngo => {
+    const dist = ngo.distance_km != null
+      ? `${ngo.distance_km} km · `
+      : '';
+    const phoneBtn = ngo.phone
+      ? `<a class="ngo-strip-btn" href="tel:${ngo.phone}" onclick="event.stopPropagation()" title="Call">📞</a>`
+      : '';
+    const emailBtn = ngo.email
+      ? `<a class="ngo-strip-btn" href="mailto:${ngo.email}" onclick="event.stopPropagation()" title="Email">✉</a>`
+      : '';
+
+    return `
+      <div class="ngo-strip-card" onclick="focusNGOOnMap(${ngo.lat}, ${ngo.lng})">
+        <div class="ngo-strip-icon">${ngo.icon || '○'}</div>
+        <div class="ngo-strip-info">
+          <div class="ngo-strip-name">${escHtml(ngo.name)}</div>
+          <div class="ngo-strip-meta">${dist}${escHtml(ngo.focus || ngo.area || '')}</div>
+        </div>
+        <div class="ngo-strip-actions">${phoneBtn}${emailBtn}</div>
+      </div>`;
+  }).join('');
+
+  // Plot on map
+  plotNGOMarkers(ngos);
+
+  // Expand strip
+  expandNGOStrip();
+}
+
+function expandNGOStrip() {
+  document.getElementById('ngo-strip-wrapper').classList.add('expanded');
+  document.getElementById('ngo-collapsed-pill').classList.remove('visible');
+  stripExpanded = true;
+}
+
+function collapseNGOStrip() {
+  document.getElementById('ngo-strip-wrapper').classList.remove('expanded');
+  stripExpanded = false;
+
+  // Show pill if we have NGOs loaded
+  if (currentNGOs.length) {
+    const pill = document.getElementById('ngo-collapsed-pill');
+    document.getElementById('ngo-pill-text').textContent =
+      `${currentNGOs.length} NGO${currentNGOs.length !== 1 ? 's' : ''} nearby`;
+    pill.classList.add('visible');
+  }
+}
+
+function focusNGOOnMap(lat, lng) {
+  if (!lat || !lng) return;
+  map.setView([lat, lng], 14, { animate: true });
+}
+
+// ── FETCH NGOs FOR AN ISSUE ───────────────
+function loadNGOsForIssue(issue) {
+  // Use issue lat/lng, fall back to nothing if missing
+  const lat = issue.lat || null;
+  const lng = issue.lng || null;
+  const tag = issue.tag || 'other';
+
+  if (!lat || !lng) {
+    // No coords — can't show nearby NGOs
+    return;
+  }
+
+  // limit=4 for 'other', 4 for specific (backend returns best matches)
+  const limit = 4;
+  fetch(`/ngo/nearby?lat=${lat}&lng=${lng}&tag=${encodeURIComponent(tag)}&limit=${limit}`)
+    .then(r => r.json())
+    .then(ngos => {
+      if (ngos && ngos.length) {
+        showNGOStrip(ngos);
+      }
+    })
+    .catch(() => {}); // silently fail — NGO strip is enhancement not critical
 }
 
 // ── HEATMAP ────────────────────────────────
@@ -480,11 +666,26 @@ async function submitReport() {
   try {
     const resp = await fetch('/report', { method: 'POST', body: formData });
     const data = await resp.json();
+
     if (data.status === 'ok') {
-      showToast(`Reported! +${data.points_earned} pts. Tag: ${data.tag}`);
+      showToast(`Reported! +${data.points_earned} pts · Tagged: ${data.tag}`);
       closeModal('report-modal');
+
+      // Refresh issues on map + sidebar
       loadIssues();
+
+      // Reset form
       document.getElementById('r-desc').value = '';
+      document.getElementById('r-preview').style.display = 'none';
+      document.getElementById('upload-placeholder').style.display = '';
+
+      // ── Show NGO strip from report response ──
+      if (data.nearby_ngos && data.nearby_ngos.length) {
+        showNGOStrip(
+          data.nearby_ngos,
+          `${data.nearby_ngos.length} NGO${data.nearby_ngos.length !== 1 ? 's' : ''} matched for "${data.tag}" issues — contact them directly`
+        );
+      }
     } else {
       showToast(data.error || 'Error submitting report');
     }
@@ -524,6 +725,9 @@ function openDetail(id) {
     </div>
   `;
   document.getElementById('detail-modal').classList.add('open');
+
+  // ── Load NGOs for this issue's tag + location ──
+  loadNGOsForIssue(issue);
 }
 
 async function upvoteDetail(id, btn) {
@@ -556,7 +760,6 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// Click outside modal closes it
 document.querySelectorAll('.modal-overlay').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
 });

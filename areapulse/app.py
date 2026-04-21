@@ -13,8 +13,9 @@ from flask_dance.contrib.google import make_google_blueprint, google
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'problemmap-secret-2025')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-# Allow HTTP for local development (remove in production)
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+# only on in local dev, off in production
+if os.environ.get('FLASK_ENV') != 'production':
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
 
 # ── GOOGLE OAUTH ───────────────────────────────────────
@@ -358,4 +359,4 @@ def community_like(post_id):
     return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=os.environ.get('FLASK_DEBUG', 'false').lower() == 'true', port=5000)
